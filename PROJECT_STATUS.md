@@ -23,7 +23,7 @@ _Last updated: 2026-10-20. First playable milestone (vertical slice) implemented
 - **3D battle arena** (Jurassic World: The Game style, client-only): both kaijus face off on a floating arena and act out each round (lunges, hits, damage numbers, shields, charge rings, knockouts, capture chains, cell dissolve). HP/AP plates at the top, actions at the bottom (D-15).
 - **Reward choice**: Capture with chain (blocked with an explanation if the chain is too short) or Defeat for Kaiju Cells. Granted once, server-side.
 - **Collection** panel: species, KL, level, threat, all stats, traits, park status, Level up (Kaiju Cells), **Fuse** at levels 10/20/30 (consumes an identical same-level duplicate, +1 level, max 40), Place in park / Remove.
-- **Studio-only dev buttons** under the currencies (+1k Cells, +$1k). The server accepts them only in Studio.
+- **Studio-only DEV cheats panel** (HUD button under the currencies): give all 18 kaijus, +1k Cells, +$1k, unlock all chains, spawn any wild kaiju in front of you (max 12, no respawn), clear spawned kaijus. The server registers these commands only in Studio (`DevService`).
 - **Park**: starter Kragmor in a free Small enclosure. Build Small/Medium/Large enclosures on a 3×3 grid (Shop → Build → tap a glowing slot). Housed kaijus are shown in their enclosure. KL → enclosure size is enforced.
 - **Kaiju animation** (client-side, procedural): legs walk in a gait synced to movement (diagonal pairs for quadrupeds, alternating for bipeds, rippling for Cataboulder), arms counter-swing, tails swish, wings flap, heads and necks nod, Jellqouia's tentacles sway. Idle motion when standing. Works for wild, park and battle-arena kaijus.
 - **Economy**: money and Kaiju Cells HUD, income per housed kaiju every second, chain shop (4 tiers).
@@ -69,7 +69,8 @@ Open the **Output** window first.
 14. Mobile: Studio → Test → Device emulator (phone): check the HUD, battle buttons and build tapping are usable.
 15. Multiplayer: Test → Clients and Servers → 2 players. Each gets their own plot. Only one player can battle a given wild kaiju.
 
-16. **Fusion** (Studio): capture a second Kragmor. Press **DEV +1k Cells** once, then level both Kragmors to 10 in Collection (450 Cells each). The level-10 button becomes **Fuse → Lv 11**: tap twice. Expected: one Kragmor at level 11, the duplicate gone, any enclosure it used now empty, a "Fusion complete!" toast, and the park nameplate showing Lv 11. Level up again with Cells to check 11→12.
+17. **Dev cheats** (Studio): DEV cheats → **Give all 18 kaijus** (Collection shows 18 more), **Unlock all chains**, then spawn e.g. **Emperor**: it appears in front of you facing you, with a Battle prompt. Battle and capture it. **Clear spawned kaijus** removes the rest.
+16. **Fusion** (Studio): capture a second Kragmor. Open **DEV cheats** and press **+1,000 Kaiju Cells** once, then level both Kragmors to 10 in Collection (450 Cells each). The level-10 button becomes **Fuse → Lv 11**: tap twice. Expected: one Kragmor at level 11, the duplicate gone, any enclosure it used now empty, a "Fusion complete!" toast, and the park nameplate showing Lv 11. Level up again with Cells to check 11→12.
 
 Please report any Output errors. That is the fastest way to fix runtime issues I couldn't test.
 

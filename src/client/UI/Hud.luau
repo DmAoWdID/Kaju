@@ -76,19 +76,14 @@ function Hud.init(gui: ScreenGui, handlers)
 		Parent = currencies,
 	})
 
-	-- Studio-only test shortcuts (the server only accepts DevGrant in Studio).
-	if RunService:IsStudio() then
-		local dev = UIKit.new("Frame", {
-			BackgroundTransparency = 1,
-			Size = UDim2.fromOffset(200, 34),
+	-- Studio-only cheat panel (the server only accepts DevCommand in Studio).
+	if RunService:IsStudio() and handlers.dev then
+		UIKit.button("DEV cheats", Color3.fromRGB(110, 70, 140), handlers.dev, {
+			Size = UDim2.fromOffset(200, 36),
+			TextSize = 15,
 			LayoutOrder = 5,
 			Parent = currencies,
-		}, { UIKit.list(Enum.FillDirection.Horizontal, 6) })
-		for _, grant in { { "DEV +1k Cells", "cells" }, { "DEV +$1k", "money" } } do
-			UIKit.button(grant[1], Color3.fromRGB(110, 70, 140), function()
-				ClientState.request(Remotes.Actions.DevGrant, { kind = grant[2] })
-			end, { Size = UDim2.fromOffset(97, 34), TextSize = 13, Parent = dev })
-		end
+		})
 	end
 
 	menu = UIKit.new("Frame", {

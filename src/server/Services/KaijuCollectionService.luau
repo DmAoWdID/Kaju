@@ -3,7 +3,6 @@
 -- (Named KaijuCollectionService to avoid confusion with Roblox's CollectionService.)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -104,25 +103,6 @@ local function onFuse(player: Player, payload)
 	return true, ("Fusion complete! %s is now level %d."):format(species.displayName, primary.level)
 end
 
--- Studio-only: grants money/cells so long progressions (leveling to 10, fusion) can be tested quickly.
--- Never registered on live servers.
-local function onDevGrant(player: Player, payload)
-	local data = DataService.get(player)
-	if not data then
-		return false, "Still loading"
-	end
-	local amount = 1000
-	if payload.kind == "cells" then
-		data.kaijuCells += amount
-	elseif payload.kind == "money" then
-		data.money += amount
-	else
-		return false, "Unknown grant"
-	end
-	DataService.replicate(player, "full")
-	return true, ("[DEV] +%d %s"):format(amount, payload.kind)
-end
-
 function KaijuCollectionService.init(options: Hooks?)
 	if options then
 		hooks = options
@@ -130,9 +110,6 @@ function KaijuCollectionService.init(options: Hooks?)
 	DataService.onLoaded(grantStarter)
 	NetService.handle(Remotes.Actions.LevelUpKaiju, onLevelUp)
 	NetService.handle(Remotes.Actions.FuseKaiju, onFuse)
-	if RunService:IsStudio() then
-		NetService.handle(Remotes.Actions.DevGrant, onDevGrant)
-	end
 end
 
 return KaijuCollectionService

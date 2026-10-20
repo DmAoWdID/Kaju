@@ -78,7 +78,7 @@ Documented: a level-10 kaiju fuses with an identical level-10 kaiju to become on
 - The kaiju you fuse *from* keeps its identity, enclosure and capture date and gains +1 level. The duplicate is consumed and leaves its enclosure. Cells spent on the duplicate are not refunded.
 - When picking the duplicate automatically, the UI prefers one that is **not** housed in the park, so income isn't lost.
 - No extra cost for fusing. Blocked during a battle. Needs a second tap to confirm.
-- A Studio-only `DevGrant` action (+1,000 Cells / +$1,000 buttons, only shown and accepted in Studio) makes this testable without grinding about 900 Cells.
+- The Studio-only DEV cheats panel (`DevCommand`, handled by `DevService`, registered only in Studio) grants Cells/money, all kaijus and all chains, and spawns any wild kaiju, so this is testable without grinding about 900 Cells.
 
 ### D-09 Enclosures
 Sizes and KL ranges are documented (Small KL1–2, Medium KL3–4, Large KL5). Prices are provisional: $100 / $1,500 / $12,000. Placement uses a 3×3 slot grid per plot, not free placement yet. One kaiju per enclosure. You buy an enclosure by placing it (Shop → Build → tap a glowing slot).

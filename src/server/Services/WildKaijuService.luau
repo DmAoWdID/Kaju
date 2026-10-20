@@ -18,7 +18,7 @@ export type Wild = {
 	species: any,
 	model: Model,
 	prompt: ProximityPrompt,
-	pointIndex: number,
+	pointIndex: number?, -- world spawn point; nil for dev-spawned kaijus (no respawn, free roaming)
 	home: Vector3,
 	position: Vector3,
 	facing: Vector3,
@@ -27,6 +27,7 @@ export type Wild = {
 	state: string, -- "roaming" | "engaged"
 	engagedBy: Player?,
 	hover: number, -- vertical bob amplitude for flyers/jellies
+	bobSeed: number,
 }
 
 local SPAWN = GameConfig.Spawning
@@ -66,15 +67,7 @@ local function clampToWilds(pos: Vector3): Vector3
 	return Vector3.new(center.X + offset.X, 0, center.Z + offset.Z)
 end
 
-local function spawnAt(pointIndex: number, speciesId: string?)
-	if occupiedPoints[pointIndex] then
-		return
-	end
-	local species = if speciesId then KaijuRegistry.get(speciesId) else pickRandomSpecies()
-	if not species then
-		warn("[WildKaijuService] no valid species for spawn point " .. pointIndex)
-		return
-	end
+local function createWild(species, home: Vector3, facing: Vector3, pointIndex: number?): Wild
 	nextId += 1
 	local id = "w" .. nextId
 	local model = KaijuModelFactory.build(species, { nameplate = true, ring = true })
@@ -93,8 +86,6 @@ local function spawnAt(pointIndex: number, speciesId: string?)
 	prompt.MaxActivationDistance = GameConfig.Interaction.promptDistance + math.max(root.Size.X, root.Size.Z) / 2
 	prompt.Parent = root
 
-	local home = world.wildSpawnPoints[pointIndex]
-	local facing = Vector3.new(0, 0, 1)
 	local wild: Wild = {
 		id = id,
 		species = species,
@@ -109,6 +100,7 @@ local function spawnAt(pointIndex: number, speciesId: string?)
 		state = "roaming",
 		engagedBy = nil,
 		hover = HOVER_ARCHETYPES[species.visual.archetype] or 0,
+		bobSeed = nextId,
 	}
 	KaijuModelFactory.place(model, CFrame.lookAt(home, home + facing))
 	model.Parent = folder
@@ -120,7 +112,20 @@ local function spawnAt(pointIndex: number, speciesId: string?)
 	end)
 
 	wilds[id] = wild
-	occupiedPoints[pointIndex] = id
+	return wild
+end
+
+local function spawnAt(pointIndex: number, speciesId: string?)
+	if occupiedPoints[pointIndex] then
+		return
+	end
+	local species = if speciesId then KaijuRegistry.get(speciesId) else pickRandomSpecies()
+	if not species then
+		warn("[WildKaijuService] no valid species for spawn point " .. pointIndex)
+		return
+	end
+	local wild = createWild(species, world.wildSpawnPoints[pointIndex], Vector3.new(0, 0, 1), pointIndex)
+	occupiedPoints[pointIndex] = wild.id
 end
 
 local function step(dt: number)
@@ -133,7 +138,9 @@ local function step(dt: number)
 			if not wild.target then
 				local angle = rng:NextNumber(0, math.pi * 2)
 				local dist = rng:NextNumber(4, SPAWN.wanderRadius)
-				wild.target = clampToWilds(wild.home + Vector3.new(math.cos(angle) * dist, 0, math.sin(angle) * dist))
+				local target = wild.home + Vector3.new(math.cos(angle) * dist, 0, math.sin(angle) * dist)
+				-- world spawns stay on the Wilds island; dev spawns roam around wherever they were placed
+				wild.target = if wild.pointIndex then clampToWilds(target) else Vector3.new(target.X, wild.home.Y, target.Z)
 			end
 			local target = wild.target :: Vector3
 			local delta = target - wild.position
@@ -149,7 +156,7 @@ local function step(dt: number)
 				wild.facing = wild.facing:Lerp(dir, math.min(1, dt * 4))
 			end
 		end
-		local bob = if wild.hover > 0 then math.sin(t * 2 + wild.pointIndex) * wild.hover else 0
+		local bob = if wild.hover > 0 then math.sin(t * 2 + wild.bobSeed) * wild.hover else 0
 		local pos = wild.position + Vector3.new(0, bob, 0)
 		local flatFacing = Vector3.new(wild.facing.X, 0, wild.facing.Z)
 		if flatFacing.Magnitude < 1e-3 then
@@ -244,12 +251,47 @@ function WildKaijuService.remove(id: string)
 		return
 	end
 	wilds[id] = nil
-	occupiedPoints[wild.pointIndex] = nil
 	wild.model:Destroy()
 	local pointIndex = wild.pointIndex
-	task.delay(SPAWN.respawnDelaySeconds, function()
-		spawnAt(pointIndex, guaranteedByPoint[pointIndex])
-	end)
+	if pointIndex then
+		occupiedPoints[pointIndex] = nil
+		task.delay(SPAWN.respawnDelaySeconds, function()
+			spawnAt(pointIndex, guaranteedByPoint[pointIndex])
+		end)
+	end
+end
+
+-- Dev/testing: spawns a wild kaiju at an arbitrary ground position. It never respawns.
+-- Returns (ok, message).
+local DEV_SPAWN_LIMIT = 12
+function WildKaijuService.spawnCustom(speciesId: string, groundPosition: Vector3, facing: Vector3): (boolean, string?)
+	local species = KaijuRegistry.get(speciesId)
+	if not species then
+		return false, "Unknown species"
+	end
+	local count = 0
+	for _, wild in wilds do
+		if not wild.pointIndex then
+			count += 1
+		end
+	end
+	if count >= DEV_SPAWN_LIMIT then
+		return false, ("Dev spawn limit reached (%d). Clear them first."):format(DEV_SPAWN_LIMIT)
+	end
+	createWild(species, groundPosition, facing, nil)
+	return true, nil
+end
+
+-- Removes every dev-spawned kaiju that is not currently in a battle. Returns how many were removed.
+function WildKaijuService.clearCustom(): number
+	local removed = 0
+	for id, wild in wilds do
+		if not wild.pointIndex and wild.state == "roaming" then
+			WildKaijuService.remove(id)
+			removed += 1
+		end
+	end
+	return removed
 end
 
 return WildKaijuService

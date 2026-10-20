@@ -13,6 +13,7 @@ local Hud = require(UI.Hud)
 local BattleUI = require(UI.BattleUI)
 local CollectionUI = require(UI.CollectionUI)
 local ShopUI = require(UI.ShopUI)
+local DevPanel = require(UI.DevPanel)
 
 local gui = UIKit.screenGui("KaijuParkUI", 5)
 
@@ -39,7 +40,8 @@ ShopUI.init(gui, closePanels, function(sizeId)
 	closePanels()
 	BuildController.start(sizeId)
 end)
-panels = { CollectionUI, ShopUI }
+DevPanel.init(gui, closePanels)
+panels = { CollectionUI, ShopUI, DevPanel }
 
 Hud.init(gui, {
 	collection = function()
@@ -50,6 +52,9 @@ Hud.init(gui, {
 	end,
 	build = function()
 		openPanel(ShopUI) -- enclosures are chosen in the shop, then placed in build mode
+	end,
+	dev = function()
+		openPanel(DevPanel)
 	end,
 })
 
