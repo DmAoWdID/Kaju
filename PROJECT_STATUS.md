@@ -78,7 +78,7 @@ Please report any Output errors. That is the fastest way to fix runtime issues I
 - Only one Wilds island (GDD: seven islands around a landmass, ~20 wild kaijus).
 - No offline income. Park kaijus can still be used in battle.
 - `Docs/message.txt` is truncated (section 15 ends mid-sentence).
-- Not a git repository yet. Suggest `git init` and a first commit.
+- Git: local repo on `main`, no remote configured yet.
 
 ## Next best tasks
 
