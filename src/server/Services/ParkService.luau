@@ -55,12 +55,13 @@ local function buildEnclosure(parent: Instance, pad: BasePart, enclosure, data):
 	model.Name = "Enclosure_" .. enclosure.enclosureId
 	model:SetAttribute("EnclosureId", enclosure.enclosureId)
 	local footprint = size.footprint
-	local base = pad.Position + Vector3.new(0, pad.Size.Y / 2, 0)
+	-- Build in the pad's frame so enclosures follow the plot's rotation; local +Z faces the entrance.
+	local base = pad.CFrame * CFrame.new(0, pad.Size.Y / 2, 0)
 
 	newPart(model, {
 		Name = "Floor",
 		Size = Vector3.new(footprint, 0.3, footprint),
-		Position = base + Vector3.new(0, 0.15, 0),
+		CFrame = base * CFrame.new(0, 0.15, 0),
 		Color = ENCLOSURE_FLOOR[enclosure.sizeId] or Palette.World.grass,
 		Material = Enum.Material.Grass,
 		CanCollide = true,
@@ -74,7 +75,7 @@ local function buildEnclosure(parent: Instance, pad: BasePart, enclosure, data):
 			newPart(model, {
 				Name = "Post",
 				Size = Vector3.new(0.8, postHeight, 0.8),
-				Position = base + offset + Vector3.new(0, postHeight / 2, 0),
+				CFrame = base * CFrame.new(offset + Vector3.new(0, postHeight / 2, 0)),
 				Color = Palette.World.fence,
 				Material = Enum.Material.Wood,
 			})
@@ -90,7 +91,7 @@ local function buildEnclosure(parent: Instance, pad: BasePart, enclosure, data):
 			newPart(model, {
 				Name = "Rail",
 				Size = rail[2],
-				Position = base + rail[1] + Vector3.new(0, h, 0),
+				CFrame = base * CFrame.new(rail[1] + Vector3.new(0, h, 0)),
 				Color = Palette.World.fence,
 				Material = Enum.Material.Wood,
 			})
@@ -107,8 +108,8 @@ local function buildEnclosure(parent: Instance, pad: BasePart, enclosure, data):
 		if fit < 1 then
 			kaiju:ScaleTo(fit)
 		end
-		local spot = base + Vector3.new(0, 0.3, 0)
-		KaijuModelFactory.place(kaiju, CFrame.lookAt(spot, spot + Vector3.new(0, 0, 1)))
+		-- Kaiju models face their -Z; turn them around so they face the entrance (pad +Z).
+		KaijuModelFactory.place(kaiju, base * CFrame.new(0, 0.3, 0) * CFrame.Angles(0, math.pi, 0))
 		kaiju.Parent = model
 		labelText = ("+%d / sec"):format(Progression.incomePerSecond(species.kl, occupant.level))
 	end
@@ -116,7 +117,7 @@ local function buildEnclosure(parent: Instance, pad: BasePart, enclosure, data):
 	local labelAnchor = newPart(model, {
 		Name = "LabelAnchor",
 		Size = Vector3.new(1, 1, 1),
-		Position = base + Vector3.new(0, postHeight + 2, half),
+		CFrame = base * CFrame.new(0, postHeight + 2, half),
 		Transparency = 1,
 		CanCollide = false,
 		CanQuery = false,

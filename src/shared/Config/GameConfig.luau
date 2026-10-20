@@ -133,7 +133,9 @@ GameConfig.Park = table.freeze({
 	gridColumns = 3,
 	gridRows = 3,
 	slotSpacing = 48,
-	plotSpacing = 220,
+	-- Plots form a ring around the Wilds, leaving a gap where the hub and bridge are.
+	ringRadius = 340, -- Wilds centre -> plot centre (studs)
+	ringGapDegrees = 80, -- free arc centred on the hub direction
 })
 
 GameConfig.Persistence = table.freeze({

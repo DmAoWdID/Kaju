@@ -90,7 +90,7 @@ Each housed kaiju earns per second: KL1 1, KL2 3, KL3 8, KL4 20, KL5 50. Level h
 The documented target is ~20 wild kaijus over seven islands. The test area has **one Wilds island** with one guaranteed Kragmor spawn (closest to the bridge) plus 3 random spawns. Random spawns are weighted by KL (60/25/10/4/1). Removed kaijus respawn at the same point after 8 s; the Kragmor point always respawns Kragmor.
 
 ### D-12 World layout
-Hub island (spawn) → bridge → Wilds island. Personal park plots (8 per server) are separate islands reached with the **My Park** button (server-validated teleport); the **Wilds** button teleports back. Plots are identical, as the GDD requires.
+Hub island (spawn) → bridge → Wilds island. The 8 personal park plots per server sit in a **ring around the Wilds** (radius 340 studs, `Park.ringRadius`). The ring leaves an 80° gap facing the hub and bridge (`Park.ringGapDegrees`). Each plot is rotated so its entrance and spawn face the Wilds, and its 3×3 slot grid and enclosures rotate with it. You reach a plot with the **My Park** button (server-validated teleport); the **Wilds** button teleports back. Plots are identical apart from their position, as the GDD requires. The sea is solid, so players can also walk across the water between islands.
 
 ### D-13 Persistence
 DataStore persistence with a session lock (`UpdateAsync`). **In Studio it is disabled by default** (`Persistence.useDataStoreInStudio = false`), so test sessions never touch real data. The HUD shows "Test mode: progress is not saved". If a live load fails, the session runs on temporary data and is never saved.

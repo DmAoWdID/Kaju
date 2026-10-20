@@ -2,7 +2,7 @@
 -- Builds the first-milestone test world from simple parts at server start:
 --   * Hub island with the player spawn
 --   * Wilds island (connected by a bridge) where wild kaijus roam
---   * A row of personal park plots, each with a grid of enclosure slots
+--   * Personal park plots in a ring around the Wilds, each with a grid of enclosure slots
 -- All geometry is placeholder and lives under Workspace.World so it can later be replaced by a built map.
 
 local Lighting = game:GetService("Lighting")
@@ -38,7 +38,6 @@ local HUB_CENTER = Vector3.new(0, 0, 0)
 local HUB_RADIUS = 70
 local WILDS_CENTER = Vector3.new(0, 0, -290)
 local WILDS_RADIUS = 150
-local PARK_ORIGIN = Vector3.new(420, 0, 0)
 local PLOT_RADIUS = 92
 
 local function part(parent: Instance, props: { [string]: any }): Part
@@ -303,8 +302,17 @@ local function buildPlots(root: Folder): { PlotInfo }
 
 	local cfg = GameConfig.Park
 	local plots: { PlotInfo } = {}
+	-- Spread plots evenly over the ring, skipping the arc that faces the hub (where the bridge is).
+	local toHub = HUB_CENTER - WILDS_CENTER
+	local hubAngle = math.atan2(toHub.Z, toHub.X)
+	local gap = math.rad(cfg.ringGapDegrees)
+	local step = if cfg.maxPlots > 1 then (math.pi * 2 - gap) / (cfg.maxPlots - 1) else 0
 	for index = 1, cfg.maxPlots do
-		local center = PARK_ORIGIN + Vector3.new(0, 0, (index - 1) * cfg.plotSpacing - (cfg.maxPlots - 1) * cfg.plotSpacing / 2)
+		local angle = hubAngle + gap / 2 + (index - 1) * step
+		local center = WILDS_CENTER + Vector3.new(math.cos(angle) * cfg.ringRadius, 0, math.sin(angle) * cfg.ringRadius)
+		-- Plot frame: local +Z points at the Wilds; the entrance (spawn + sign) is on that side.
+		local toWilds = Vector3.new(WILDS_CENTER.X - center.X, 0, WILDS_CENTER.Z - center.Z).Unit
+		local plotCf = CFrame.lookAt(center, center - toWilds)
 		local model = Instance.new("Model")
 		model.Name = "Plot" .. index
 		model:SetAttribute("PlotIndex", index)
@@ -319,11 +327,12 @@ local function buildPlots(root: Folder): { PlotInfo }
 		for r = 1, rows do
 			for c = 1, cols do
 				slot += 1
-				local offset = Vector3.new((c - (cols + 1) / 2) * cfg.slotSpacing, 0, (r - (rows + 1) / 2) * cfg.slotSpacing - 6)
+				local offset = Vector3.new((c - (cols + 1) / 2) * cfg.slotSpacing, 0.2, (r - (rows + 1) / 2) * cfg.slotSpacing - 6)
+				-- Pads share the plot's rotation; their local +Z points to the entrance.
 				local pad = part(slotsFolder, {
 					Name = "Slot" .. slot,
 					Size = Vector3.new(cfg.slotSpacing - 6, 0.4, cfg.slotSpacing - 6),
-					Position = center + offset + Vector3.new(0, 0.2, 0),
+					CFrame = plotCf * CFrame.new(offset),
 					Color = Palette.World.pad,
 					Material = Enum.Material.Sand,
 					CanCollide = true,
@@ -338,8 +347,8 @@ local function buildPlots(root: Folder): { PlotInfo }
 		enclosures.Name = "Enclosures"
 		enclosures.Parent = model
 
-		local spawnPos = center + Vector3.new(0, 4, PLOT_RADIUS - 14)
-		local signLabel = sign(model, center + Vector3.new(-14, 0, PLOT_RADIUS - 20), Vector3.new(0, 0, 1), "Free plot", 22)
+		local spawnPos = plotCf:PointToWorldSpace(Vector3.new(0, 4, PLOT_RADIUS - 14))
+		local signLabel = sign(model, plotCf:PointToWorldSpace(Vector3.new(-14, 0, PLOT_RADIUS - 20)), toWilds, "Free plot", 22)
 
 		model.Parent = parkFolder
 		table.insert(plots, {
