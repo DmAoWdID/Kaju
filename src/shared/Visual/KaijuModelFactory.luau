@@ -332,10 +332,14 @@ local function finalize(model: Model, species: Types.KaijuSpecies, opts: BuildOp
 	model:SetAttribute("SpeciesId", species.id)
 end
 
--- Moves a factory-built model so its feet pivot lands on `cf` (only Root's CFrame changes).
+-- Moves a factory-built model so its feet pivot lands on `cf`.
+-- Welds only work inside the Workspace: outside it, moving Root alone would leave the body behind
+-- (and the welds would then lock in that wrong offset once parented). So:
+--   * not yet in the Workspace -> PivotTo moves every part together
+--   * in the Workspace         -> move only Root; the welded body follows (cheap to replicate)
 function KaijuModelFactory.place(model: Model, cf: CFrame)
 	local root = model.PrimaryPart
-	if root then
+	if root and model:IsDescendantOf(workspace) then
 		root.CFrame = cf * root.PivotOffset:Inverse()
 	else
 		model:PivotTo(cf)
