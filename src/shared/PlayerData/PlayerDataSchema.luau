@@ -145,6 +145,23 @@ function PlayerDataSchema.addEnclosure(data: PlayerData, sizeId: string, slot: n
 	return enclosure
 end
 
+-- Applies a fusion that the caller has already validated with Progression.canFuse:
+-- `partnerId` is consumed (and leaves its enclosure), `primaryId` keeps its identity and gains one level.
+-- Returns the primary kaiju.
+function PlayerDataSchema.fuse(data: PlayerData, primaryId: string, partnerId: string): OwnedKaiju
+	local primary = data.kaijus[primaryId]
+	local partner = data.kaijus[partnerId]
+	assert(primary and partner and primaryId ~= partnerId, "invalid fusion pair")
+	for _, e in data.enclosures do
+		if e.kaijuInstanceId == partnerId then
+			e.kaijuInstanceId = nil
+		end
+	end
+	data.kaijus[partnerId] = nil
+	primary.level += 1
+	return primary
+end
+
 function PlayerDataSchema.enclosureAtSlot(data: PlayerData, slot: number): Types.PlacedEnclosure?
 	for _, e in data.enclosures do
 		if e.slot == slot then

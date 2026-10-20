@@ -92,16 +92,44 @@ local function card(order: number, owned, species, data)
 		Parent = item,
 	}, { UIKit.list(Enum.FillDirection.Vertical, 8, Enum.HorizontalAlignment.Right) })
 
-	local canLevel, reason = Progression.canLevelUpWithCells(owned.level, data.kaijuCells)
-	local levelText = if owned.level >= GameConfig.Progression.fusionLevel
-		then "Max (fusion\ncoming later)"
-		else ("Level up\n%d Cells"):format(Progression.levelUpCost(owned.level))
-	local levelButton = UIKit.button(levelText, Color3.fromRGB(60, 160, 140), function()
-		ClientState.request(Remotes.Actions.LevelUpKaiju, { instanceId = owned.instanceId })
-	end, { Size = UDim2.fromOffset(160, 56), TextSize = 16, LayoutOrder = 1, Parent = actions })
-	UIKit.setEnabled(levelButton, canLevel)
-	if not canLevel and reason then
-		levelButton:SetAttribute("Reason", reason)
+	if Progression.isFusionLevel(owned.level) then
+		-- Fusion consumes a duplicate, so it needs a second tap to confirm.
+		local partner = Progression.findFusionPartner(data.kaijus, owned, function(id)
+			return PlayerDataSchema.enclosureOf(data, id) ~= nil
+		end)
+		local idleText = if partner
+			then ("Fuse → Lv %d\nuses a duplicate"):format(owned.level + 1)
+			else ("Fuse: needs 2nd\nLv %d %s"):format(owned.level, species.displayName)
+		local armed = false
+		local fuseButton
+		fuseButton = UIKit.button(idleText, Color3.fromRGB(170, 90, 200), function()
+			if not partner then
+				return
+			end
+			if not armed then
+				armed = true
+				fuseButton.Text = "Tap again\nto fuse"
+				task.delay(3, function()
+					if armed and fuseButton.Parent then
+						armed = false
+						fuseButton.Text = idleText
+					end
+				end)
+				return
+			end
+			armed = false
+			ClientState.request(Remotes.Actions.FuseKaiju, { instanceId = owned.instanceId, partnerId = partner.instanceId })
+		end, { Size = UDim2.fromOffset(160, 56), TextSize = 15, LayoutOrder = 1, Parent = actions })
+		UIKit.setEnabled(fuseButton, partner ~= nil)
+	else
+		local canLevel = Progression.canLevelUpWithCells(owned.level, data.kaijuCells)
+		local levelText = if owned.level >= GameConfig.Progression.maxLevel
+			then "Max level"
+			else ("Level up\n%d Cells"):format(Progression.levelUpCost(owned.level))
+		local levelButton = UIKit.button(levelText, Color3.fromRGB(60, 160, 140), function()
+			ClientState.request(Remotes.Actions.LevelUpKaiju, { instanceId = owned.instanceId })
+		end, { Size = UDim2.fromOffset(160, 56), TextSize = 16, LayoutOrder = 1, Parent = actions })
+		UIKit.setEnabled(levelButton, canLevel)
 	end
 
 	if enclosure then

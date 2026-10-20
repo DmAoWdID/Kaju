@@ -25,7 +25,10 @@ print(("[KaijuPark] %d kaiju species loaded%s"):format(#KaijuRegistry.all(), if 
 NetService.init()
 local world = WorldBuilder.build()
 -- onLoaded callbacks run in registration order: starter grant must precede the park render.
-KaijuCollectionService.init()
+KaijuCollectionService.init({
+	isInBattle = BattleService.isInBattle,
+	onParkChanged = ParkService.render,
+})
 ParkService.init(world, BattleService.isInBattle)
 ShopService.init()
 BattleService.init()

@@ -69,7 +69,16 @@ Losing or drawing has no penalty. The wild kaiju is released back into the world
 KL1 10, KL2 25, KL3 60, KL4 150, KL5 400.
 
 ### D-08 Leveling
-Level L → L+1 costs `10 + 10 × (L − 1)` Kaiju Cells, levels 1–10 only. Level 10 → 11 requires fusion (documented) and is **not implemented**; the UI says so. Levels 11–40 are therefore unreachable for now.
+Level L → L+1 costs `10 + 10 × (L − 1)` Kaiju Cells, for every level except the fusion gates (D-14). Max level 40 (documented).
+
+### D-14 Fusion
+Documented: a level-10 kaiju fuses with an identical level-10 kaiju to become one level-11 kaiju, and "the same basic progression with leveling and fusion" continues to 40.
+- **Interpretation (provisional):** fusion gates at levels **10, 20 and 30**, so 10→11, 20→21 and 30→31 each need fusion. Cells raise every other level, up to 40.
+- "Identical" = same species. Both kaijus must be at the same gate level.
+- The kaiju you fuse *from* keeps its identity, enclosure and capture date and gains +1 level. The duplicate is consumed and leaves its enclosure. Cells spent on the duplicate are not refunded.
+- When picking the duplicate automatically, the UI prefers one that is **not** housed in the park, so income isn't lost.
+- No extra cost for fusing. Blocked during a battle. Needs a second tap to confirm.
+- A Studio-only `DevGrant` action (+1,000 Cells / +$1,000 buttons, only shown and accepted in Studio) makes this testable without grinding about 900 Cells.
 
 ### D-09 Enclosures
 Sizes and KL ranges are documented (Small KL1–2, Medium KL3–4, Large KL5). Prices are provisional: $100 / $1,500 / $12,000. Placement uses a 3×3 slot grid per plot, not free placement yet. One kaiju per enclosure. You buy an enclosure by placing it (Shop → Build → tap a glowing slot).
@@ -95,6 +104,6 @@ DataStore persistence with a session lock (`UpdateAsync`). **In Studio it is dis
 5. Capture chances: should a capture be able to fail? Should a failed capture still allow taking Cells? (D-06)
 6. Chain names, lengths, prices and which KLs each chain covers. (D-06)
 7. Income per KL; should level affect income? Offline income? (D-10)
-8. Fusion rules for levels 11–40: is a fusion needed every 10 levels (10→11, 20→21, 30→31)? What happens to cells spent?
+8. Fusion beyond level 10: is our reading of fusion gates at 10/20/30 right (D-14)? Should fusion cost anything? Should the consumed kaiju refund Cells?
 9. Meaning of "supergiant star" (Popcorn), "50 (150)" (Wormhole mobility), and "\*" on "Distance Traveling".
 10. Can kaijus placed in the park also be used in battles? (Currently: yes.)

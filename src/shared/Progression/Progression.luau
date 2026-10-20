@@ -24,22 +24,74 @@ function Progression.levelUpCost(level: number): number
 	return PROGRESSION.levelUpCostBase + PROGRESSION.levelUpCostPerLevel * (level - 1)
 end
 
--- Returns (ok, reason). Levels past fusionLevel require fusion, which is not implemented yet.
+-- Documented: at level 10 a kaiju must fuse with an identical level-10 kaiju to reach 11, and the same
+-- "leveling and fusion" progression continues to 40. Provisional reading: fusion gates at 10, 20 and 30.
+function Progression.isFusionLevel(level: number): boolean
+	return level >= PROGRESSION.fusionLevel and level % PROGRESSION.fusionLevel == 0 and level < PROGRESSION.maxLevel
+end
+
+-- Returns (ok, reason). Cells raise every level except the fusion gates.
 function Progression.canLevelUpWithCells(level: number, cells: number): (boolean, string?)
 	if level >= PROGRESSION.maxLevel then
 		return false, "Already at max level"
 	end
-	if level >= PROGRESSION.fusionLevel and level % PROGRESSION.fusionLevel == 0 then
-		return false, ("Level %d requires fusion with an identical level %d kaiju (coming later)"):format(level + 1, level)
-	end
-	if level > PROGRESSION.fusionLevel then
-		return false, "Levels above the fusion threshold are not implemented yet"
+	if Progression.isFusionLevel(level) then
+		return false, ("Level %d needs fusion with another level %d kaiju of the same species"):format(level + 1, level)
 	end
 	local cost = Progression.levelUpCost(level)
 	if cells < cost then
 		return false, ("Needs %d Kaiju Cells"):format(cost)
 	end
 	return true, nil
+end
+
+type FusionCandidate = { instanceId: string, speciesId: string, level: number }
+
+-- Validates fusing `partner` into `primary`. Returns (ok, reason).
+function Progression.canFuse(primary: FusionCandidate?, partner: FusionCandidate?): (boolean, string?)
+	if not primary or not partner then
+		return false, "Missing kaiju"
+	end
+	if primary.instanceId == partner.instanceId then
+		return false, "A kaiju can't fuse with itself"
+	end
+	if primary.speciesId ~= partner.speciesId then
+		return false, "Fusion needs two kaijus of the same species"
+	end
+	if not Progression.isFusionLevel(primary.level) then
+		return false, ("Fusion happens at level %d, %d and %d"):format(
+			PROGRESSION.fusionLevel,
+			PROGRESSION.fusionLevel * 2,
+			PROGRESSION.fusionLevel * 3
+		)
+	end
+	if partner.level ~= primary.level then
+		return false, ("Both kaijus must be level %d"):format(primary.level)
+	end
+	return true, nil
+end
+
+-- Picks a fusion partner for `primary` from `owned`, preferring kaijus that are not housed in the park.
+-- Deterministic (lowest instanceId wins among equals). Returns nil if none qualifies.
+function Progression.findFusionPartner(
+	owned: { [string]: FusionCandidate },
+	primary: FusionCandidate,
+	isHoused: ((string) -> boolean)?
+): FusionCandidate?
+	local best: FusionCandidate? = nil
+	local bestHoused = true
+	for _, candidate in owned do
+		if Progression.canFuse(primary, candidate) then
+			local housed = if isHoused then isHoused(candidate.instanceId) else false
+			local better = best == nil
+				or (bestHoused and not housed)
+				or (housed == bestHoused and candidate.instanceId < (best :: FusionCandidate).instanceId)
+			if better then
+				best, bestHoused = candidate, housed
+			end
+		end
+	end
+	return best
 end
 
 function Progression.chain(tier: number)

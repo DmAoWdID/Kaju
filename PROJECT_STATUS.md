@@ -21,7 +21,8 @@ _Last updated: 2026-10-20. First playable milestone (vertical slice) implemented
 - **Wild kaijus**: a guaranteed Kragmor nearest the bridge, plus 3 KL-weighted random spawns. They wander, show a nameplate with a KL badge and a colored KL ground ring, and have an **E / tap prompt "Battle"**. They respawn after capture or defeat.
 - **Turn-based battle**: server-validated start (distance, one battle per player, one player per wild kaiju). Pick your kaiju, then Attack / Defend / Save with action points. Shows HP bars, AP pips, round log, victory/defeat/draw, Retreat, idle timeout.
 - **Reward choice**: Capture with chain (blocked with an explanation if the chain is too short) or Defeat for Kaiju Cells. Granted once, server-side.
-- **Collection** panel: species, KL, level, threat, all stats, traits, park status, Level up (Kaiju Cells, up to level 10), Place in park / Remove.
+- **Collection** panel: species, KL, level, threat, all stats, traits, park status, Level up (Kaiju Cells), **Fuse** at levels 10/20/30 (consumes an identical same-level duplicate, +1 level, max 40), Place in park / Remove.
+- **Studio-only dev buttons** under the currencies (+1k Cells, +$1k). The server accepts them only in Studio.
 - **Park**: starter Kragmor in a free Small enclosure. Build Small/Medium/Large enclosures on a 3×3 grid (Shop → Build → tap a glowing slot). Housed kaijus are shown in their enclosure. KL → enclosure size is enforced.
 - **Economy**: money and Kaiju Cells HUD, income per housed kaiju every second, chain shop (4 tiers).
 - **Save-ready data**: DataStore with session locking on live servers; memory-only in Studio (HUD says so).
@@ -66,13 +67,15 @@ Open the **Output** window first.
 14. Mobile: Studio → Test → Device emulator (phone): check the HUD, battle buttons and build tapping are usable.
 15. Multiplayer: Test → Clients and Servers → 2 players. Each gets their own plot. Only one player can battle a given wild kaiju.
 
+16. **Fusion** (Studio): capture a second Kragmor. Press **DEV +1k Cells** once, then level both Kragmors to 10 in Collection (450 Cells each). The level-10 button becomes **Fuse → Lv 11**: tap twice. Expected: one Kragmor at level 11, the duplicate gone, any enclosure it used now empty, a "Fusion complete!" toast, and the park nameplate showing Lv 11. Level up again with Cells to check 11→12.
+
 Please report any Output errors. That is the fastest way to fix runtime issues I couldn't test.
 
 ## Known issues / limitations
 
 - DataStore persistence only runs on live servers (or Studio with API access + `useDataStoreInStudio`); not yet tested there.
 - Placeholder art only; per-species colors come from the PDF pages. Real models can be dropped into `ReplicatedStorage.KaijuModels` (see `Docs/TECHNICAL_ARCHITECTURE.md`).
-- Fusion (level 10→11 and up to 40) is not implemented; level-up stops at 10.
+- Fusion gates at 10/20/30 are our interpretation of the GDD (see D-14). Fusion is unit-tested but **not yet play-tested in Studio**.
 - Traits have no combat effect. Team size is 1.
 - Enclosure placement uses a fixed 3×3 grid (no free placement, moving or selling yet).
 - Only one Wilds island (GDD: seven islands around a landmass, ~20 wild kaijus).
@@ -84,7 +87,7 @@ Please report any Output errors. That is the fastest way to fix runtime issues I
 
 1. Confirm the remaining checklist items (mobile emulator, 2-player test, published-place DataStore save/load).
 2. Resolve the open design questions in `Docs/IMPLEMENTATION_DECISIONS.md` (starter kaiju, combat formulas, chain/price tables).
-3. Fusion system (level 10 → 11 with two identical level-10 kaijus).
+3. Play-test fusion in Studio (checklist step 16).
 4. Free enclosure placement / move / sell, and a proper park layout.
 5. Expand the world toward the documented 7 islands + ~20 spawns; per-island spawn tables.
 6. Trait effects in combat; multi-kaiju teams.

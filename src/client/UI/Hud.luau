@@ -2,6 +2,7 @@
 -- Always-visible HUD: money, Kaiju Cells, chain, persistence notice, and the main menu buttons.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Progression = require(Shared.Progression.Progression)
@@ -74,6 +75,21 @@ function Hud.init(gui: ScreenGui, handlers)
 		Visible = false,
 		Parent = currencies,
 	})
+
+	-- Studio-only test shortcuts (the server only accepts DevGrant in Studio).
+	if RunService:IsStudio() then
+		local dev = UIKit.new("Frame", {
+			BackgroundTransparency = 1,
+			Size = UDim2.fromOffset(200, 34),
+			LayoutOrder = 5,
+			Parent = currencies,
+		}, { UIKit.list(Enum.FillDirection.Horizontal, 6) })
+		for _, grant in { { "DEV +1k Cells", "cells" }, { "DEV +$1k", "money" } } do
+			UIKit.button(grant[1], Color3.fromRGB(110, 70, 140), function()
+				ClientState.request(Remotes.Actions.DevGrant, { kind = grant[2] })
+			end, { Size = UDim2.fromOffset(97, 34), TextSize = 13, Parent = dev })
+		end
+	end
 
 	menu = UIKit.new("Frame", {
 		Name = "Menu",
