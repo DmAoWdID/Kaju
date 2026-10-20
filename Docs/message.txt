@@ -1,0 +1,330 @@
+# KAIJU PARK
+## Komplett spelbeskrivning och Game Design Document
+
+## 1. Grundidén
+
+Kaiju Park är ett Roblox-spel som kombinerar kaiju-samlande, utforskning, turbaserade strider, parkbyggande och ett level-system. Spelaren ska hitta vilda kaijus i världen, slåss mot dem, fånga dem och sedan använda dem för att bygga sin egen kaijupark.
+
+Spelet har två huvudsakliga delar:
+
+1. **En gemensam värld** där spelarna utforskar öar och hittar vilda kaijus.
+2. **En personlig ö** där varje spelare bygger och utvecklar sin egen park.
+
+Spelarens långsiktiga mål är att samla alla kaijus, fånga de mest sällsynta arterna, bygga en stor park, tjäna pengar, levla upp sina kaijus och skapa ett starkt stridslag.
+
+Spelet ska ha en tydlig utvecklingskurva. I början har spelaren få resurser och relativt svaga kaijus. Efter hand kan spelaren köpa bättre utrustning, fånga mer sällsynta kaijus, bygga ut sin park och utveckla sina monster till högre levels.
+
+## 2. Spelvärlden
+
+### Den gemensamma världen
+
+Den gemensamma världen består av en stor landmassa med sju öar placerade i en cirkel runt den. Detta är området där spelarna letar efter vilda kaijus.
+
+Öarna är delar av samma spelvärld och används som områden där kaijus kan spawnas och röra sig. Spelaren ska kunna utforska miljön, upptäcka kaijus och starta strider mot dem.
+
+Det ska finnas ungefär 20 vilda kaijus spawnade samtidigt i hela den gemensamma världen. De kan finnas på olika platser och röra sig runt i miljön. När en kaiju fångas eller besegras kan en ny kaiju spawnas för att hålla världen aktiv.
+
+Alla kaijus ska inte vara lika vanliga. Kaijus med låg KL ska dyka upp oftare, medan kaijus med hög KL ska vara mycket svårare att hitta.
+
+### Spelarens personliga ö
+
+Varje spelare har en egen ö som fungerar som spelarens privata kaijupark.
+
+Alla spelare börjar med samma grundö. Öarnas ursprungliga utseende och layout ska vara likadana, så ingen spelare får en bättre startposition än någon annan.
+
+Det som skiljer spelarnas öar åt är hur de väljer att bygga.
+
+Spelaren kan själv bestämma var burar ska placeras och hur parken ska organiseras. En spelare kan exempelvis bygga en stor central park med burar runt vägar, medan en annan kan placera burarna längs öns kanter och lämna ett stort öppet område i mitten.
+
+Det viktiga är att alla börjar med samma förutsättningar men kan skapa helt olika parker.
+
+Den personliga ön används för att:
+
+- Placera ut burar och förvara fångade kaijus.
+- Tjäna pengar automatiskt genom kaijus.
+- Bygga och organisera sin egen park.
+- Köpa fler burar och utveckla parken över tid.
+- Visa upp sina mest sällsynta och starkaste kaijus.
+
+## 3. Kaijus och KL-systemet
+
+KL står för **Kaiju Level** och är den klassificering som används för kaijus i spelet.
+
+Det finns fem KL-klasser: KL 1, KL 2, KL 3, KL 4 och KL 5.
+
+KL är inte samma sak som en kaijus vanliga level. KL är kaijuns klass i spelet, medan den vanliga leveln visar hur långt spelaren har utvecklat den.
+
+### KL 1
+
+KL 1 består av de vanligaste kaijusen. Dessa är de första kaijus som spelaren vanligtvis stöter på och passar bra för att komma igång med spelets system.
+
+De är relativt vanliga att hitta och hjälper spelaren att bygga upp sin första samling och börja tjäna pengar.
+
+### KL 2
+
+KL 2 består av kaijus som är mer ovanliga än KL 1. De blir nästa steg i spelarens samling och kan ge bättre inkomster och nya möjligheter i strider.
+
+### KL 3
+
+KL 3 består av mer sällsynta kaijus. Spelaren behöver utforska världen och ha tur för att hitta dem.
+
+De kan bli viktiga delar av spelarens stridslag och ger ett tydligt steg framåt i progressionen.
+
+### KL 4
+
+KL 4 består av mycket ovanliga kaijus. Dessa är mer eftertraktade och kan bli värdefulla tillskott till spelarens park och stridslag.
+
+### KL 5
+
+KL 5 är den högsta KL-klassen och innehåller de mest sällsynta kaijusen.
+
+Att hitta och fånga en KL 5-kaiju ska vara en stor händelse för spelaren. Dessa kaijus kan vara särskilt värdefulla för parken och kan användas för att bygga ett kraftfullt stridslag.
+
+KL-klassen påverkar bland annat hur ofta en kaiju spawnas, vilken burstorlek den behöver och hur mycket pengar den genererar.
+
+Högre KL ska generellt innebära större värde, men KL och stridsstyrka behöver inte vara exakt samma sak.
+
+## 4. Kaijus som finns i spelet
+
+Spelet använder spelarens egna kaijus, med individuella namn, egenskaper och statistik.
+
+Följande kaijus finns dokumenterade i den nuvarande samlingen:
+
+| KL | Kaijus |
+|---|---|
+| KL 1 | Kragmor, Chomp Chomp, Popcorn, Eye Bat |
+| KL 2 | Great Tusk, Jellqouia, KillerSpotts |
+| KL 3 | Wormhole, Obio 16 |
+| KL 4 | Leazorn, Hornet, Night Angel, Cataboulder, Korand |
+| KL 5 | Cagn, Doubt, Yumir, Emperor |
+
+Varje kaiju har sin egen design, storlek, statistik och tre traits. Traits är särskilda egenskaper eller förmågor som gör att kaijus kan skilja sig åt.
+
+Statistiken omfattar:
+
+- **Durability:** hur tålig kaijun är.
+- **Damage:** hur mycket skada den kan orsaka.
+- **Mobility:** hur rörlig den är.
+- **Stamina:** hur mycket uthållighet den har.
+- **Intelligence:** hur intelligent den är.
+
+Kaijus kan därför ha olika styrkor och svagheter. En kaiju kan exempelvis ha hög skada men låg rörlighet, medan en annan kan vara snabb och intelligent men mindre tålig.
+
+De individuella egenskaperna ska göra att varje kaiju känns unik och att spelaren har anledning att samla fler än bara de kaijus som har högst KL.
+
+## 5. Spawn-systemet
+
+Spawn-systemet styr vilka kaijus som finns i den gemensamma världen.
+
+Det ska finnas ungefär 20 aktiva vilda kaijus samtidigt. De kan dyka upp på olika platser och röra sig runt i världen.
+
+När spelaren utforskar kan den hitta en kaiju och gå fram till den. Då visas en interaktion som låter spelaren starta en fight.
+
+KL påverkar hur ofta olika kaijus dyker upp. KL 1 ska vara vanligast och KL 5 ska vara mycket sällsynt.
+
+Spawn-systemet ska hålla världen levande och ge spelaren en anledning att fortsätta utforska. Spelaren ska inte veta exakt var varje kaiju finns hela tiden.
+
+När en vild kaiju fångas eller besegras kan den tas bort från världen och ersättas av en ny spawn. På så sätt kan spelarna fortsätta hitta kaijus utan att hela världen blir tom.
+
+De exakta spawn-chanserna och hur ofta nya kaijus ska dyka upp behöver balanseras under utvecklingen.
+
+## 6. Strider mot vilda kaijus
+
+När spelaren hittar en vild kaiju kan den gå fram till den och trycka på E för att starta en fight.
+
+Striden sker i ett separat stridsläge där spelaren använder sina kaijus för att besegra motståndaren.
+
+Det är inte meningen att spelaren bara ska slåss genom att klicka så snabbt som möjligt. Stridssystemet ska vara turbaserat och bygga på taktiska beslut, liknande striderna i Jurassic World: The Game.
+
+Spelaren ska behöva tänka på vilka kaijus den använder, när den attackerar och när den sparar resurser till senare turer.
+
+### Grundläggande stridsflöde
+
+1. Spelaren hittar en vild kaiju.
+2. Spelaren trycker på E för att starta striden.
+3. Spelaren väljer sitt stridslag enligt spelets regler.
+4. Spelaren och motståndaren genomför sina turer.
+5. Spelaren använder sina tillgängliga actionpoäng för att attackera, försvara eller spara poäng.
+6. Striden fortsätter tills en sida vinner.
+7. Spelaren får belöningen och kan välja om den vill fånga kaijun eller besegra den för att få Kaiju Cells, enligt spelets belöningsregler.
+
+Det exakta antalet kaijus i ett stridslag, reglerna för actionpoäng och hur mycket skada varje attack orsakar ska bestämmas under utvecklingen.
+
+## 7. Fångstsystemet och kedjor
+
+När spelaren har vunnit en fight mot en vild kaiju ska den kunna försöka fånga den med en kedja.
+
+Kedjorna fungerar som en del av spelarens progression. Spelaren börjar med en grundläggande kedja och kan senare köpa uppgraderingar i en shop.
+
+Längden på kedjan avgör vilka kaijus spelaren kan fånga. En grundläggande kedja ska räcka för enklare kaijus, medan mer sällsynta kaijus kräver bättre kedjor.
+
+Spelaren behöver därför tjäna pengar och uppgradera sin kedja för att kunna fånga de mest avancerade kaijusen.
+
+### Kedje-shoppen
+
+I shoppen ska spelaren kunna köpa längre kedjor.
+
+En möjlig progression är:
+
+- Startkedja för enklare kaijus.
+- Uppgraderad kedja för fler KL-klasser.
+- Avancerad kedja för mer krävande fångster.
+- En avancerad slutuppgradering som klarar KL 5.
+
+Exakta längder, priser och gränser ska bestämmas när ekonomin balanseras.
+
+## 8. Burar och parkbyggande
+
+När spelaren har fångat en kaiju behöver den en bur på sin personliga ö.
+
+Det finns tre burstorlekar, och vilken storlek som behövs bestäms av kaijuns KL.
+
+**Liten bur – KL 1–2**
+
+Den minsta och billigaste buren. Den används för de vanligaste kaijusen och passar bra när spelaren börjar bygga sin park.
+
+**Mellanstor bur – KL 3–4**
+
+En större bur för mer ovanliga och avancerade kaijus.
+
+**Stor bur – KL 5**
+
+Den största och dyraste burstorleken. Den används för de mest sällsynta kaijusen.
+
+Spelaren köper burar i en shop och placerar dem på sin ö. Var burarna placeras bestämmer spelaren själv.
+
+Det innebär att spelaren måste tänka både ekonomiskt och kreativt. Den behöver ha rätt burar för sina kaijus, men den kan också utforma parken på sitt eget sätt.
+
+En KL 2-kaiju behöver fortfarande en liten bur även om den har nått en hög vanlig level. KL och vanlig level är två separata system.
+
+## 9. Ekonomisystemet
+
+Kaijus som står i spelarens park genererar pengar automatiskt varje sekund.
+
+Varje kaiju bidrar till spelarens totala inkomst. Ju högre KL, desto mer pengar kan kaijun generera.
+
+Det gör att spelaren tjänar pengar genom att samla kaijus och utveckla sin park.
+
+Pengarna används till att köpa fler burar, uppgradera kedjor och bygga ut parken.
+
+Det skapar en återkommande spelcykel:
+
+1. Hitta och fånga kaijus.
+2. Placera dem i burar på den personliga ön.
+3. Tjäna pengar automatiskt.
+4. Använd pengarna för att köpa uppgraderingar.
+5. Hitta och fånga ännu bättre kaijus.
+
+De slutgiltiga inkomsterna för varje KL behöver balanseras så att spelaren utvecklas i lagom takt.
+
+## 10. Level-systemet och Kaiju Cells
+
+Alla kaijus som spelaren äger kan utvecklas genom ett level-system.
+
+Den vanliga leveln börjar på level 1 och kan nå level 40.
+
+För att levla upp använder spelaren Kaiju Cells. Dessa samlas genom att besegra vilda kaijus i stället för att fånga dem.
+
+Det ger spelaren ett viktigt val när den vinner en strid: ska den fånga kaijun och lägga till den i sin park, eller besegra den för att få material till sina andra kaijus?
+
+### Level 1–10
+
+Spelaren använder Kaiju Cells för att levla upp sin kaiju steg för steg.
+
+Målet är att nå level 10.
+
+### Fusion vid level 10
+
+När en kaiju når level 10 måste spelaren samla ytterligare en exakt likadan kaiju som också har nått level 10.
+
+De två kaijusen fusioneras till en enda kaiju på level 11.
+
+Det betyder att spelaren behöver samla dubbletter och investera resurser i dem för att utveckla sin favoritkaiju.
+
+### Level 11–40
+
+Efter level 10 fortsätter spelaren att utveckla kaijun genom samma grundläggande progression med leveling och fusion.
+
+Systemet ska fortsätta hela vägen till level 40.
+
+En kaiju som når level 40 behåller sin KL-klass. En KL 3-kaiju på level 40 är alltså fortfarande KL 3, men har utvecklats till en högre vanlig level.
+
+Detta ger spelaren ett långsiktigt mål som kräver både strider, resurser och flera exemplar av samma kaiju.
+
+## 11. Strider med spelarens egna kaijus
+
+Förutom att slåss mot vilda kaijus ska spelaren kunna använda sina egna kaijus i strider.
+
+Stridssystemet ska följa samma grundläggande upplägg som Jurassic World: The Game.
+
+Striderna är turbaserade. Spelaren behöver fatta beslut under varje tur i stället för att enbart förlita sig på kaijuns statistik.
+
+De viktigaste handlingarna är:
+
+- **Attack:** använd actionpoäng för att skada motståndaren.
+- **Försvar:** använd poäng för att minska eller hantera inkommande skada.
+- **Spara:** behåll poäng till senare turer för att kunna genomföra kraftigare attacker.
+
+Det taktiska djupet kommer från att spelaren måste avgöra när det är bäst att attackera och när det är bättre att spara resurser.
+
+Kaijus olika stats och traits ska också påverka hur de presterar i strid. En snabb kaiju kan exempelvis ha andra fördelar än en mycket tålig kaiju.
+
+## 12. Shops och uppgraderingar
+
+Spelet ska innehålla shops där spelaren kan spendera sina pengar.
+
+De viktigaste inköpen är:
+
+**Kedje-shop:** används för att köpa längre kedjor och få tillgång till mer avancerade kaijus.
+
+**Bur-shop:** används för att köpa små, mellanstora och stora burar.
+
+Fler uppgraderingar kan läggas till senare, men de grundläggande shopsystemen ska först stödja fångst och parkbyggande.
+
+Alla uppgraderingar ska bidra till spelarens progression. Spelaren ska känna att det lönar sig att samla kaijus och tjäna pengar, eftersom pengarna ger tillgång till fler möjligheter.
+
+## 13. Hur alla systemen fungerar tillsammans
+
+Kaiju Park bygger på att alla system är kopplade till varandra.
+
+Spelaren börjar med en personlig ö och kan utforska den gemensamma världen för att hitta vilda kaijus.
+
+När spelaren hittar en kaiju startar den en fight genom att trycka på E. Efter att ha vunnit kan spelaren fånga kaijun med en kedja eller besegra den för att få Kaiju Cells.
+
+Fångade kaijus kan placeras i burar på spelarens personliga ö. Där genererar de pengar varje sekund.
+
+Pengarna kan användas för att köpa fler burar och uppgradera kedjan. Samtidigt kan Kaiju Cells användas för att utveckla spelarens kaijus.
+
+Genom leveling och fusion kan spelaren bygga upp ett starkare stridslag. Detta gör det lättare att klara svårare strider och fortsätta utveckla sin samling.
+
+Spelets viktigaste spelcykel är därför:
+
+**Utforska → hitta kaijus → slåss → fånga eller besegra → bygga parken → tjäna pengar → levla upp → bli starkare → hitta ännu fler kaijus.**
+
+## 14. Spelarens mål
+
+Kaiju Park ska ge spelaren både kortsiktiga och långsiktiga mål.
+
+Kortsiktigt kan spelaren försöka hitta en ny kaiju, vinna en fight eller tjäna pengar till nästa uppgradering.
+
+På medellång sikt kan spelaren försöka samla alla kaijus inom en KL-klass, köpa bättre kedjor, bygga fler burar och utveckla sina kaijus genom leveling.
+
+På lång sikt kan spelaren försöka fånga alla kaijus i spelet, hitta de mest sällsynta KL 5-kaijusen, nå level 40 med sina favoritkaijus och bygga en stor, personlig kaijupark.
+
+Det slutliga målet är att skapa en egen samling med unika kaijus och bygga en park som visar spelarens framsteg.
+
+## 15. Rekommenderad utvecklingsordning
+
+För att utveckla spelet på ett effektivt sätt bör ni börja med den minsta versionen som faktiskt går att spela.
+
+### Steg 1: Grundläggande värld
+
+Skapa en enkel testmiljö där spelaren kan röra sig. Bygg först ett mindre område innan ni skapar hela världen med sju öar.
+
+### Steg 2: En fungerande kaiju
+
+Lägg in en kaiju som kan spawnas, röra sig och finnas i världen.
+
+### Steg 3: Interaktion och strid
+
+Gör så att spelaren kan gå fram till kaij

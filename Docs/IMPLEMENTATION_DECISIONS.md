@@ -1,0 +1,100 @@
+# Implementation Decisions & Open Questions
+
+Source documents: `Docs/message.txt` (game design document, Swedish) and `Docs/Kaju game.pdf` (kaiju reference, 18 pages).
+Everything below is **provisional** unless marked otherwise. All numbers live in `src/shared/Config/GameConfig.luau`; change them there.
+
+## Source document notes
+
+- **`Docs/message.txt` is truncated.** It ends mid-sentence in section 15 ("Steg 3: Interaktion och strid … Gör så att spelaren kan gå fram till kaij"). The rest of the recommended development order is missing. **Please supply the full text.**
+- Kaiju data was extracted from the PDF text layer and cross-checked against rendered pages. For all 18 species, the five stats add up exactly to the documented "Total" (automated test).
+
+### Kaiju data uncertainties (values preserved as written, not corrected)
+
+| Species | Note |
+|---|---|
+| Popcorn | Page shows a small unexplained label **"supergiant star"** above the name. Not stored as data; recorded in `notes`. |
+| Eye bat | PDF spells **"Eye bat"**; the GDD table spells "Eye Bat". `displayName` uses the PDF; "Eye Bat" is in `nameVariants`. Trait **"Comp"** may be a typo (for "Chomp"?), kept as written. |
+| Great tusk | PDF **"Great tusk"** vs GDD "Great Tusk". Same handling as Eye bat. |
+| Wormhole | Mobility written **"50 (150)"**. `stats.mobility = 50` (matches the Total 360); the raw text is kept in `statAnnotations.mobility`. Meaning of 150 is unknown (burrowing speed?). Trait **"Distance Traveling\*"** has an asterisk with no footnote. |
+| Obio 16 | Biohazard icon next to the name (recorded in `notes`). Trait "Het detector" kept as written (heat?). |
+| Night Angel | Length given as Body ~17m / Tail ~15m rather than one value. Stored as two dimensions. |
+| Spellings kept verbatim | "Tung trap", "Hed stab", "Arme slash", "Atomic breathe", "Scretche", "Horne tackel", "Pinche", "Telepathic(hive mind)", "Cutsie", "Jellqouia". |
+| Threat vs KL | Cataboulder (KL4) has threat 4.2, which is lower than Obio 16 (KL3, 4.8). Not an error; threat rating and KL are independent values. |
+
+Real-world dimensions are informational only. In-game model scale comes from `GameConfig.KL[n].modelScale` × `species.visual.scale`.
+
+## Provisional gameplay decisions
+
+### D-01 Starter kaiju (not in GDD)
+The GDD has players fight with their own kaijus but doesn't say how the first one is obtained. New players get **one Kragmor (level 1)** housed in **one free Small enclosure** at park slot 1 (`GameConfig.Starter`). This lets the first battle and the park/income loop work immediately.
+*Open question:* intended way to get the first kaiju (starter choice? tutorial capture?).
+
+### D-02 Battle team size = 1
+The GDD says the team size "should be decided during development". Each side uses one kaiju (`Combat.teamSize`, not yet used beyond 1). Before each battle the player picks which owned kaiju fights.
+
+### D-03 Stat → combat mapping (GDD says stats should matter, gives no formula)
+| Stat | Provisional use |
+|---|---|
+| Durability | `maxHp = 20 + 3 × Durability` |
+| Damage | damage per AP = `4 + 0.5 × Damage` |
+| Mobility | turn order within a round (higher acts first; ties go to the player) |
+| Stamina | max AP = `min(5, 3 + floor(Stamina / 50))` |
+| Intelligence | wild AI only: chance of picking the "smart" action = `min(0.95, 0.3 + Int/200)` |
+| Traits | **no combat effect yet**; displayed only |
+
+Level scaling: combat values × `1 + 0.05 × (level − 1)`. KL never changes with level (documented).
+
+### D-04 Action points & actions (GDD: Attack / Defend / Save with action points)
+- Both sides start with 1 AP and gain +1 AP each round, capped at max AP.
+- **Attack** spends *all* current AP. Damage = per-AP damage × AP × (1 + 0.25 × (AP − 1)), so saving up pays off.
+- **Defend** costs 1 AP and blocks 50% of incoming damage this round.
+- **Save** does nothing and keeps AP for a bigger attack later.
+- Both sides choose simultaneously. Defend/Save resolve first, then attacks in Mobility order. A kaiju knocked out before its attack does not attack.
+- 30 rounds without a winner = draw (no reward, wild kaiju released).
+- **Retreat** (not in GDD) is available during kaiju selection and fighting, so players can't get stuck.
+- Idle battles time out after 120 s. A timed-out *won* battle automatically awards Kaiju Cells, so a victory is never lost.
+
+Measured: Kragmor vs Kragmor with a simple "save to 2 AP then attack" policy wins ~73% of 200 simulated fights (test output).
+
+### D-05 Losing
+Losing or drawing has no penalty. The wild kaiju is released back into the world. Player kaiju HP is not persistent between battles.
+
+### D-06 Capture & chains
+- Four chain tiers (the GDD lists four steps, the last one handling KL5): Starter (KL1, free), Reinforced (≤KL2, $600), Advanced (≤KL4, $6,000), Titan (≤KL5, $40,000). Lengths (10/25/60/150 m) are display-only. **Names, limits and prices are placeholders.**
+- Chains must be bought in order.
+- Capture chance is 100% for all KLs (`KL[n].captureChance`), so both outcomes are reliably testable. If a capture fails, the kaiju escapes with no reward.
+- If the chain is too short, the Capture button is disabled and shows which chain is needed. The player can still take Kaiju Cells.
+
+### D-07 Kaiju Cells per defeat
+KL1 10, KL2 25, KL3 60, KL4 150, KL5 400.
+
+### D-08 Leveling
+Level L → L+1 costs `10 + 10 × (L − 1)` Kaiju Cells, levels 1–10 only. Level 10 → 11 requires fusion (documented) and is **not implemented**; the UI says so. Levels 11–40 are therefore unreachable for now.
+
+### D-09 Enclosures
+Sizes and KL ranges are documented (Small KL1–2, Medium KL3–4, Large KL5). Prices are provisional: $100 / $1,500 / $12,000. Placement uses a 3×3 slot grid per plot, not free placement yet. One kaiju per enclosure. You buy an enclosure by placing it (Shop → Build → tap a glowing slot).
+
+### D-10 Income
+Each housed kaiju earns per second: KL1 1, KL2 3, KL3 8, KL4 20, KL5 50. Level has no effect yet. **No offline income.** Unhoused kaijus earn nothing. Starting money is $250.
+
+### D-11 Spawning (test area only)
+The documented target is ~20 wild kaijus over seven islands. The test area has **one Wilds island** with one guaranteed Kragmor spawn (closest to the bridge) plus 3 random spawns. Random spawns are weighted by KL (60/25/10/4/1). Removed kaijus respawn at the same point after 8 s; the Kragmor point always respawns Kragmor.
+
+### D-12 World layout
+Hub island (spawn) → bridge → Wilds island. Personal park plots (8 per server) are separate islands reached with the **My Park** button (server-validated teleport); the **Wilds** button teleports back. Plots are identical, as the GDD requires.
+
+### D-13 Persistence
+DataStore persistence with a session lock (`UpdateAsync`). **In Studio it is disabled by default** (`Persistence.useDataStoreInStudio = false`), so test sessions never touch real data. The HUD shows "Test mode: progress is not saved". If a live load fails, the session runs on temporary data and is never saved.
+
+## Open questions for the designer
+
+1. Full text of GDD section 15 onward (file is truncated).
+2. How does a new player get their first kaiju? (D-01)
+3. Team size and whether a team has more than one kaiju active per battle. (D-02)
+4. Intended stat → combat formulas and what traits do in combat. (D-03)
+5. Capture chances: should a capture be able to fail? Should a failed capture still allow taking Cells? (D-06)
+6. Chain names, lengths, prices and which KLs each chain covers. (D-06)
+7. Income per KL; should level affect income? Offline income? (D-10)
+8. Fusion rules for levels 11–40: is a fusion needed every 10 levels (10→11, 20→21, 30→31)? What happens to cells spent?
+9. Meaning of "supergiant star" (Popcorn), "50 (150)" (Wormhole mobility), and "\*" on "Distance Traveling".
+10. Can kaijus placed in the park also be used in battles? (Currently: yes.)
