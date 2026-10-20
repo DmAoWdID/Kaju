@@ -9,6 +9,7 @@ local Progression = require(Shared.Progression.Progression)
 local Remotes = require(Shared.Net.Remotes)
 
 local ClientState = require(script.Parent.Parent.Controllers.ClientState)
+local RideController = require(script.Parent.Parent.Controllers.RideController)
 local UIKit = require(script.Parent.UIKit)
 
 local Hud = {}
@@ -90,7 +91,7 @@ function Hud.init(gui: ScreenGui, handlers)
 		Name = "Menu",
 		AnchorPoint = Vector2.new(1, 0.5),
 		Position = UDim2.new(1, -16, 0.5, 0),
-		Size = UDim2.fromOffset(150, 330),
+		Size = UDim2.fromOffset(150, 400),
 		BackgroundTransparency = 1,
 		Parent = root,
 	}, { UIKit.list(Enum.FillDirection.Vertical, 10, Enum.HorizontalAlignment.Right) })
@@ -107,6 +108,12 @@ function Hud.init(gui: ScreenGui, handlers)
 	end)
 	menuButton("Wilds", Color3.fromRGB(110, 120, 80), 5, function()
 		ClientState.request(Remotes.Actions.Travel, { destination = "wilds" })
+	end)
+	local dismount = UIKit.button("Dismount", Color3.fromRGB(150, 90, 70), function()
+		ClientState.request(Remotes.Actions.Dismount)
+	end, { Size = UDim2.fromOffset(150, 54), LayoutOrder = 6, TextSize = 20, Visible = false, Parent = menu })
+	RideController.onChanged(function(riding)
+		dismount.Visible = riding
 	end)
 
 	ClientState.onChanged(Hud.refresh)

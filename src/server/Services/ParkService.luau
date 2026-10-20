@@ -25,6 +25,14 @@ local plotOwner: { [number]: Player } = {}
 local isInBattle: (Player) -> boolean = function()
 	return false
 end
+local isRidden: (Player, string) -> boolean = function()
+	return false
+end
+
+-- Lets RideService tell the park which kaiju is out riding (not shown in its enclosure, no income).
+function ParkService.setRideCheck(fn: (Player, string) -> boolean)
+	isRidden = fn
+end
 
 local ENCLOSURE_FLOOR = {
 	Small = Color3.fromRGB(150, 196, 120),
@@ -49,7 +57,7 @@ local function newPart(parent: Instance, props): Part
 	return p
 end
 
-local function buildEnclosure(parent: Instance, pad: BasePart, enclosure, data): Model
+local function buildEnclosure(parent: Instance, pad: BasePart, enclosure, data, player: Player): Model
 	local size = GameConfig.Enclosures[enclosure.sizeId]
 	local model = Instance.new("Model")
 	model.Name = "Enclosure_" .. enclosure.enclosureId
@@ -101,7 +109,10 @@ local function buildEnclosure(parent: Instance, pad: BasePart, enclosure, data):
 	local occupant = enclosure.kaijuInstanceId and data.kaijus[enclosure.kaijuInstanceId]
 	local species = occupant and KaijuRegistry.get(occupant.speciesId)
 	local labelText = size.displayName .. "\n(empty)"
-	if occupant and species then
+	local outRiding = occupant ~= nil and isRidden(player, occupant.instanceId)
+	if outRiding and species then
+		labelText = species.displayName .. "\n(out riding)"
+	elseif occupant and species then
 		local plate = { nameplate = true, nameplateText = ("KL %d · Lv %d"):format(species.kl, occupant.level) }
 		local kaiju = KaijuModelFactory.build(species, plate)
 		local _, bbox = kaiju:GetBoundingBox()
@@ -134,7 +145,7 @@ local function buildEnclosure(parent: Instance, pad: BasePart, enclosure, data):
 	label.BackgroundTransparency = 1
 	label.Font = Enum.Font.GothamBold
 	label.TextScaled = true
-	label.TextColor3 = if occupant then Palette.UI.money else Color3.new(1, 1, 1)
+	label.TextColor3 = if occupant and not outRiding then Palette.UI.money else Color3.new(1, 1, 1)
 	label.TextStrokeTransparency = 0.4
 	label.Text = labelText
 	label.Parent = gui
@@ -157,7 +168,7 @@ function ParkService.render(player: Player)
 		local pad = plot.slots[enclosure.slot]
 		if pad then
 			used[enclosure.slot] = true
-			buildEnclosure(folder, pad, enclosure, data)
+			buildEnclosure(folder, pad, enclosure, data, player)
 		end
 	end
 	for index, pad in plot.slots do
@@ -350,7 +361,7 @@ function ParkService.init(worldInfo, battleCheck: (Player) -> boolean)
 					for _, enclosure in data.enclosures do
 						local owned = enclosure.kaijuInstanceId and data.kaijus[enclosure.kaijuInstanceId]
 						local species = owned and KaijuRegistry.get(owned.speciesId)
-						if species then
+						if species and not isRidden(player, owned.instanceId) then
 							income += Progression.incomePerSecond(species.kl, owned.level)
 						end
 					end

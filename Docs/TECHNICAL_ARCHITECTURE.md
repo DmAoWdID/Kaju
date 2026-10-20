@@ -78,6 +78,10 @@ Each species has a hand-built part model in `src/shared/Visual/KaijuDesigns.luau
 
 Designs wrap limbs in `k:group(name, pivot, kind, {phase, side, amp}, fn)`. For each group the factory creates an invisible bone at the pivot, joined to Root with a `Motor6D` ("AnimMotor"); the group's parts are welded to the bone, and the model is tagged `AnimatedKaiju`. The client-side `KaijuAnimator` sets each motor's `Transform` every frame from `KaijuGait.angles(...)`. That is pure, unit-tested math: the gait cycle advances with distance moved, and speed blends idle into walk. Kinds are `leg`, `arm`, `tail`, `wing`, `head` and `sway`. The server only moves Root, and `Transform` is client-local, so animation costs no network traffic.
 
+### Riding
+
+Each design sets a saddle point (`k:saddle(...)`); the factory stores it, scaled, as the model's `SaddleOffset` attribute. `RideService` (server) builds the mount, welds its Root under the rider's `HumanoidRootPart` (feet on the ground, saddle under the rider), parents it inside the character (so floor checks and the camera ignore it), raises `Humanoid.HipHeight` to saddle height and sets `WalkSpeed` from Mobility. The mount is part of the client-owned character assembly, so movement is smooth and replicates normally. `RideController` (client) plays Roblox's default sit animation at Action priority and widens the camera zoom range.
+
 ### Replacing placeholder models
 
 Add `ReplicatedStorage.KaijuModels.<speciesId>` (overrides are not animated) (a Model with its pivot at the feet, facing −Z). `KaijuModelFactory.build` will clone it instead of generating parts. The world, park and UI portraits all use the factory.

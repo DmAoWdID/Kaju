@@ -26,6 +26,7 @@ _Last updated: 2026-10-20. First playable milestone (vertical slice) implemented
 - **Studio-only DEV cheats panel** (HUD button under the currencies): give all 18 kaijus, +1k Cells, +$1k, unlock all chains, spawn any wild kaiju in front of you (max 12, no respawn), clear spawned kaijus. The server registers these commands only in Studio (`DevService`).
 - **Park**: starter Kragmor in a free Small enclosure. Build Small/Medium/Large enclosures on a 3×3 grid (Shop → Build → tap a glowing slot). Housed kaijus are shown in their enclosure. KL → enclosure size is enforced.
 - **Kaiju animation** (client-side, procedural): legs walk in a gait synced to movement (diagonal pairs for quadrupeds, alternating for bipeds, rippling for Cataboulder), arms counter-swing, tails swish, wings flap, heads and necks nod, Jellqouia's tentacles sway. Idle motion when standing. Works for wild, park and battle-arena kaijus.
+- **Riding**: ride any owned kaiju from the Collection. You sit on its saddle (back, shoulder or head), steer with normal controls, and its legs animate as it walks. Speed comes from Mobility. Auto-dismount on battle, death or fusion; a ridden kaiju is "out riding" from its enclosure (D-16).
 - **Economy**: money and Kaiju Cells HUD, income per housed kaiju every second, chain shop (4 tiers).
 - **Save-ready data**: DataStore with session locking on live servers; memory-only in Studio (HUD says so).
 - Desktop + touch: on-screen buttons for everything; ProximityPrompt works with E, gamepad X, and tap.
@@ -70,6 +71,7 @@ Open the **Output** window first.
 15. Multiplayer: Test → Clients and Servers → 2 players. Each gets their own plot. Only one player can battle a given wild kaiju.
 
 17. **Dev cheats** (Studio): DEV cheats → **Give all 18 kaijus** (Collection shows 18 more), **Unlock all chains**, then spawn e.g. **Emperor**: it appears in front of you facing you, with a Battle prompt. Battle and capture it. **Clear spawned kaijus** removes the rest.
+18. **Riding**: Collection → **Ride** on your Kragmor: you sit on its back, the camera pulls out, and you move with WASD/thumbstick while its legs walk. **Dismount** (HUD) puts you back on the ground. Try a big one (DEV → Give all kaijus → Ride Doubt/Emperor) and check the seat position and speed. Ride the kaiju that lives in your park: its enclosure shows "(out riding)" and income stops until you dismount. Walk into a wild kaiju and press E: you are dismounted and the battle starts.
 16. **Fusion** (Studio): capture a second Kragmor. Open **DEV cheats** and press **+1,000 Kaiju Cells** once, then level both Kragmors to 10 in Collection (450 Cells each). The level-10 button becomes **Fuse → Lv 11**: tap twice. Expected: one Kragmor at level 11, the duplicate gone, any enclosure it used now empty, a "Fusion complete!" toast, and the park nameplate showing Lv 11. Level up again with Cells to check 11→12.
 
 Please report any Output errors. That is the fastest way to fix runtime issues I couldn't test.

@@ -122,6 +122,14 @@ GameConfig.Spawning = table.freeze({
 	wanderPauseMax = 6,
 })
 
+-- Riding your own kaijus (not in the GDD; provisional). Ride speed uses the documented Mobility stat.
+GameConfig.Riding = table.freeze({
+	speedBase = 14, -- walk speed = speedBase + mobility * speedPerMobility, capped at speedMax
+	speedPerMobility = 0.1,
+	speedMax = 32,
+	seatLift = 1.6, -- studs between the saddle point and the rider's root part
+})
+
 GameConfig.Interaction = table.freeze({
 	promptDistance = 16,
 	keyboardKey = "E", -- documented: press E to start a fight

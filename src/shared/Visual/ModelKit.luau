@@ -21,7 +21,12 @@ export type AnimGroup = {
 }
 
 function ModelKit.new(model: Model, seed: number?)
-	return setmetatable({ model = model, rng = Random.new(seed or 1), groups = {}, current = nil }, ModelKit)
+	return setmetatable({ model = model, rng = Random.new(seed or 1), groups = {}, current = nil, saddlePoint = nil }, ModelKit)
+end
+
+-- Where a rider sits (on the back / shoulder), in design units.
+function ModelKit:saddle(pos: Vector3)
+	self.saddlePoint = pos
 end
 
 -- Parts created inside fn() belong to animation group `name` and rotate around `pivot`

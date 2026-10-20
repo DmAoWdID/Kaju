@@ -13,6 +13,7 @@ local Remotes = require(Shared.Net.Remotes)
 
 local ClientState = require(script.Parent.Parent.Controllers.ClientState)
 local KaijuViewport = require(script.Parent.KaijuViewport)
+local RideController = require(script.Parent.Parent.Controllers.RideController)
 local UIKit = require(script.Parent.UIKit)
 
 local CollectionUI = {}
@@ -37,7 +38,7 @@ local function card(order: number, owned, species, data)
 	local enclosure = PlayerDataSchema.enclosureOf(data, owned.instanceId)
 	local item = UIKit.new("Frame", {
 		BackgroundColor3 = C.panelLight,
-		Size = UDim2.new(1, -12, 0, 150),
+		Size = UDim2.new(1, -12, 0, 162),
 		LayoutOrder = order,
 		Parent = list,
 	}, { UIKit.corner(12), UIKit.padding(10) })
@@ -119,7 +120,7 @@ local function card(order: number, owned, species, data)
 			end
 			armed = false
 			ClientState.request(Remotes.Actions.FuseKaiju, { instanceId = owned.instanceId, partnerId = partner.instanceId })
-		end, { Size = UDim2.fromOffset(160, 56), TextSize = 15, LayoutOrder = 1, Parent = actions })
+		end, { Size = UDim2.fromOffset(160, 42), TextSize = 14, LayoutOrder = 1, Parent = actions })
 		UIKit.setEnabled(fuseButton, partner ~= nil)
 	else
 		local canLevel = Progression.canLevelUpWithCells(owned.level, data.kaijuCells)
@@ -128,19 +129,28 @@ local function card(order: number, owned, species, data)
 			else ("Level up\n%d Cells"):format(Progression.levelUpCost(owned.level))
 		local levelButton = UIKit.button(levelText, Color3.fromRGB(60, 160, 140), function()
 			ClientState.request(Remotes.Actions.LevelUpKaiju, { instanceId = owned.instanceId })
-		end, { Size = UDim2.fromOffset(160, 56), TextSize = 16, LayoutOrder = 1, Parent = actions })
+		end, { Size = UDim2.fromOffset(160, 42), TextSize = 14, LayoutOrder = 1, Parent = actions })
 		UIKit.setEnabled(levelButton, canLevel)
 	end
 
 	if enclosure then
 		UIKit.button("Remove from park", Color3.fromRGB(150, 90, 70), function()
 			ClientState.request(Remotes.Actions.UnassignKaiju, { instanceId = owned.instanceId })
-		end, { Size = UDim2.fromOffset(160, 56), TextSize = 16, LayoutOrder = 2, Parent = actions })
+		end, { Size = UDim2.fromOffset(160, 42), TextSize = 15, LayoutOrder = 2, Parent = actions })
 	else
 		UIKit.button("Place in park", Color3.fromRGB(80, 140, 200), function()
 			ClientState.request(Remotes.Actions.AssignKaiju, { instanceId = owned.instanceId })
-		end, { Size = UDim2.fromOffset(160, 56), TextSize = 16, LayoutOrder = 2, Parent = actions })
+		end, { Size = UDim2.fromOffset(160, 42), TextSize = 15, LayoutOrder = 2, Parent = actions })
 	end
+
+	local ridingThis = RideController.ridingInstanceId() == owned.instanceId
+	UIKit.button(if ridingThis then "Dismount" else "Ride", if ridingThis then Color3.fromRGB(150, 90, 70) else Color3.fromRGB(214, 140, 40), function()
+		if ridingThis then
+			ClientState.request(Remotes.Actions.Dismount)
+		else
+			ClientState.request(Remotes.Actions.RideKaiju, { instanceId = owned.instanceId })
+		end
+	end, { Size = UDim2.fromOffset(160, 42), TextSize = 15, LayoutOrder = 3, Parent = actions })
 end
 
 local function rebuild()
@@ -200,6 +210,9 @@ function CollectionUI.init(gui: ScreenGui, onClose: () -> ())
 		Parent = content,
 	})
 	list = UIKit.scrolling(listHolder)
+	RideController.onChanged(function()
+		rebuild()
+	end)
 	ClientState.onChanged(function(scope)
 		if scope == "full" then
 			rebuild()

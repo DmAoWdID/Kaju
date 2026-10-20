@@ -16,6 +16,7 @@ local ShopService = require(Services.ShopService)
 local WildKaijuService = require(Services.WildKaijuService)
 local BattleService = require(Services.BattleService)
 local DevService = require(Services.DevService)
+local RideService = require(Services.RideService)
 local WorldBuilder = require(script.Parent.World.WorldBuilder)
 
 local clean = KaijuRegistry.report(function(line)
@@ -29,12 +30,20 @@ local world = WorldBuilder.build()
 KaijuCollectionService.init({
 	isInBattle = BattleService.isInBattle,
 	onParkChanged = ParkService.render,
+	onKaijuRemoved = function(player, instanceId)
+		if RideService.isRiding(player, instanceId) then
+			RideService.dismount(player)
+		end
+	end,
 })
 ParkService.init(world, BattleService.isInBattle)
 ShopService.init()
 BattleService.init()
 WildKaijuService.init(world, BattleService.onPromptTriggered)
 DevService.init(BattleService.isInBattle) -- Studio-only cheats; does nothing on live servers
+RideService.init({ isInBattle = BattleService.isInBattle, onChanged = ParkService.render })
+ParkService.setRideCheck(RideService.isRiding)
+BattleService.setBeforeStart(RideService.dismount)
 DataService.init() -- last: starts handling players once every service is listening
 
 print("[KaijuPark] server ready")

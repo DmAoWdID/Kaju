@@ -26,6 +26,7 @@ end
 
 -- Hunched crawler: angular grey carapace hood, crimson face and long crimson mantis arms, dark hind legs.
 Designs.kragmor = function(k)
+	k:saddle(V(0, 10.4, 0.2))
 	local shell, shellLight, dark, crimson, tooth = C(112, 112, 128), C(150, 150, 166), C(52, 52, 60), C(190, 26, 62), C(232, 214, 186)
 	mirror(function(s)
 		for i, z in { 1.2, 3.6 } do
@@ -112,12 +113,14 @@ end
 
 -- A pair of fuzzy black grinning spider-balls (the sheet shows two).
 Designs.chomp_chomp = function(k)
+	k:saddle(V(-2.2, 9.3, 0.4))
 	chompBall(k, V(-2.2, 5.6, 0), 1, "a")
 	chompBall(k, V(6.2, 3.9, 3.2), 0.68, "b")
 end
 
 -- Round white chick with a red heart comb, orange beak and pink cheeks.
 Designs.popcorn = function(k)
+	k:saddle(V(0, 9.5, 2))
 	local white, red, orange, pink, black = C(248, 246, 238), C(170, 18, 30), C(244, 150, 40), C(250, 160, 170), C(25, 25, 25)
 	k:ball(V(9, 9.4, 8.6), V(0, 5.2, 0), white)
 	-- heart comb
@@ -148,6 +151,7 @@ end
 
 -- Cyclops bat: one huge red eye, lolling tongue, membrane wings, spindly legs, spade tail. Hovers.
 Designs.eye_bat = function(k)
+	k:saddle(V(0, 9.9, 1.6))
 	local body, bodyDark, membrane, bone, red, tongue = C(122, 52, 84), C(86, 34, 60), C(84, 40, 72), C(150, 70, 104), C(214, 26, 40), C(214, 70, 100)
 	k:ball(V(3, 3.8, 3), V(0, 8.2, 0.2), body)
 	k:ball(V(3.6, 3.4, 3.2), V(0, 10.6, -0.4), body)
@@ -192,6 +196,7 @@ end
 
 -- Shark with a sawfish snout, two dark horns, a huge round toothy maw and a dark tail. Hovers.
 Designs.great_tusk = function(k)
+	k:saddle(V(0, 8.5, -3.6))
 	local skin, belly, dark, fin, maw, horn = C(150, 120, 110), C(196, 172, 156), C(96, 72, 66), C(110, 50, 40), C(64, 14, 20), C(54, 20, 22)
 	k:ball(V(5, 5, 16), V(0, 6, 1), skin)
 	k:ball(V(4.2, 2.8, 13), V(0, 4.8, 0.4), belly)
@@ -226,6 +231,7 @@ end
 
 -- Jellyfish-sequoia: wide magenta bell on a stalk over a cascading tree of arrow-shaped tentacles.
 Designs.jellqouia = function(k)
+	k:saddle(V(0, 23.2, 0))
 	local bell, bellDark, glow, arrowA, arrowB = C(226, 40, 164), C(170, 18, 120), C(255, 196, 236), C(240, 52, 176), C(255, 120, 210)
 	k:ball(V(15, 6.4, 15), V(0, 20, 0), bell, { transparency = 0.12 })
 	k:ball(V(8, 2.2, 8), V(0, 22.4, 0), glow, { transparency = 0.25 })
@@ -257,6 +263,7 @@ end
 
 -- Lean spotted pack-hunter: dark grey with white spots, red-tipped spike crest and spiked tail club.
 Designs.killerspotts = function(k)
+	k:saddle(V(0, 7.9, 1))
 	local hide, belly, spot, black, red, claw = C(74, 74, 80), C(188, 188, 194), C(214, 214, 220), C(28, 28, 30), C(196, 24, 34), C(170, 20, 30)
 	k:ball(V(4.4, 4, 11.5), V(0, 5.8, 0), hide)
 	k:ball(V(3.6, 2.4, 9.4), V(0, 4.7, 0), belly)
@@ -307,6 +314,7 @@ end
 
 -- Colossal brown serpent: piled coils, a tall arch, raised cobra neck with an orange, veined throat.
 Designs.wormhole = function(k)
+	k:saddle(V(0, 12.7, -8))
 	local brown, brownDark, throat, vein, eye = C(92, 52, 30), C(62, 34, 20), C(204, 106, 40), C(70, 200, 210), C(255, 110, 50)
 	-- piled coils
 	local coil = {}
@@ -341,6 +349,7 @@ end
 
 -- Armoured mech-knight with a huge sword, rusted plates, a "16" mark and infecting vines with yellow bulbs.
 Designs.obio_16 = function(k)
+	k:saddle(V(4.6, 16, 0))
 	local metal, metalDark, rust, visor, vine, bulb, green = C(140, 140, 148), C(70, 70, 78), C(196, 150, 96), C(40, 44, 40), C(96, 64, 36), C(246, 220, 40), C(60, 210, 70)
 	mirror(function(s)
 		k:group("leg" .. s, V(s * 2, 9.2, 0), "leg", { phase = if s < 0 then 0 else 0.5, side = s, amp = 0.7 }, function()
@@ -403,6 +412,7 @@ end
 
 -- Green chameleon-beast: crouched, horned frill, bulging eye, purple maw, spiral-curled tail.
 Designs.leazorn = function(k)
+	k:saddle(V(0, 7.5, 1.6))
 	local green, light, horn, maw, claw, scar = C(58, 160, 104), C(110, 206, 150), C(170, 220, 180), C(96, 40, 96), C(220, 214, 180), C(170, 24, 30)
 	local drop = 1.8 -- crouch: everything sits lower than a standing pose
 	k:ball(V(5.2, 5, 9.6), V(0, 6.2 - drop, 0.4), green)
@@ -448,6 +458,7 @@ end
 
 -- Dark armoured blade-dragon: white scythe blades on head, arms and back, glowing blue eye, bladed tail.
 Designs.hornet = function(k)
+	k:saddle(V(0, 9.1, 1.2))
 	local navy, navyDark, blade, eye, red, mouth = C(26, 26, 54), C(14, 14, 30), C(226, 226, 234), C(80, 140, 255), C(200, 30, 60), C(150, 110, 120)
 	k:ball(V(5.2, 4.6, 10.4), V(0, 6.2, 0.6), navy)
 	k:ball(V(4, 1.4, 8), V(0, 8.4, 0.8), navyDark)
@@ -486,6 +497,7 @@ end
 
 -- Winged wolf-sphinx sitting on a rock: skull mask, huge dark feathered wings with orange eye-spots.
 Designs.night_angel = function(k)
+	k:saddle(V(0, 11.2, 0.6))
 	local fur, furDark, rock, mask, wing, feather, orange, tail = C(30, 30, 36), C(18, 18, 22), C(104, 104, 112), C(206, 206, 210), C(40, 38, 48), C(26, 24, 32), C(240, 120, 30), C(52, 36, 86)
 	k:ball(V(8, 4.4, 7.4), V(0, 2.2, 0.6), rock, SLATE)
 	k:ball(V(5, 3, 5), V(2.6, 1.6, 2.4), rock, SLATE)
@@ -529,6 +541,7 @@ end
 
 -- Boulder caterpillar: grey rock segments, big ringed eyes, crystals on the back, a forest on its flanks.
 Designs.cataboulder = function(k)
+	k:saddle(V(0, 9.8, -3.3))
 	local rock, rockDark, ringGreen, ringPink, toothC, trunk, pine, pineDark, leg =
 		C(140, 150, 168), C(96, 104, 120), C(70, 200, 120), C(226, 70, 210), C(214, 190, 150), C(120, 80, 50), C(40, 140, 50), C(26, 96, 36), C(206, 150, 110)
 	local segments = { { -6, 8, 8.4 }, { -0.6, 9, 9 }, { 4.8, 9.4, 9.2 }, { 10, 8.8, 8.6 }, { 14.6, 7.4, 7.4 } }
@@ -575,6 +588,7 @@ end
 
 -- Bright green fish-titan: stooped, shark-like head with open magenta maw, yellow antennae, webbed fins.
 Designs.korand = function(k)
+	k:saddle(V(0, 14.2, 1.4))
 	local green, pale, fin, maw, yellow = C(64, 228, 96), C(200, 250, 210), C(160, 236, 186), C(206, 40, 120), C(250, 236, 60)
 	mirror(function(s)
 		k:group("leg" .. s, V(s * 2.4, 7, 1), "leg", { phase = if s < 0 then 0 else 0.5, side = s, amp = 0.7 }, function()
@@ -619,6 +633,7 @@ end
 
 -- Hulking turtle-dragon on its knuckles: spiked blue shell, glowing green patches, boar tusks, long tail.
 Designs.cagn = function(k)
+	k:saddle(V(0, 13.1, 1.2))
 	local body, bodyDark, shell, shellLight, glow, tusk = C(38, 74, 92), C(24, 44, 56), C(56, 124, 186), C(96, 170, 222), C(90, 230, 170), C(232, 226, 204)
 	k:ball(V(7.2, 6.6, 10.4), V(0, 8, 0.6), body)
 	k:ball(V(8.4, 5.4, 10.6), V(0, 10.6, 1.4), shell)
@@ -667,6 +682,7 @@ end
 
 -- Teal golem with a ram skull: pink muscle, grey fur collar, huge arms reaching the ground.
 Designs.doubt = function(k)
+	k:saddle(V(4.4, 17.6, 0.6))
 	local teal, tealDark, pink, fur, skull, horn = C(40, 150, 144), C(26, 108, 104), C(236, 120, 128), C(168, 168, 174), C(232, 230, 222), C(186, 180, 168)
 	mirror(function(s)
 		k:group("leg" .. s, V(s * 2.8, 8.4, 0.4), "leg", { phase = if s < 0 then 0 else 0.5, side = s, amp = 0.6 }, function()
@@ -716,6 +732,7 @@ end
 
 -- Starry crystal titan: dark body flecked with cyan stars, golden beetle horns, giant crab-claw arms.
 Designs.yumir = function(k)
+	k:saddle(V(4.2, 17.1, 0))
 	local dark, darker, chest, gold, cyan = C(40, 50, 62), C(26, 32, 42), C(214, 196, 150), C(214, 176, 90), C(80, 226, 236)
 	mirror(function(s)
 		k:group("leg" .. s, V(s * 2, 8.4, 0.4), "leg", { phase = if s < 0 then 0 else 0.5, side = s, amp = 0.6 }, function()
@@ -777,6 +794,7 @@ end
 
 -- Golden eastern-western dragon: red-scaled coiling body, orange bat wings, flame mane and tail tuft.
 Designs.emperor = function(k)
+	k:saddle(V(0, 11.1, -0.8))
 	local gold, goldDark, red, redDark, wingC, bone, claw, eye = C(244, 196, 40), C(196, 146, 30), C(204, 30, 30), C(120, 14, 20), C(242, 152, 40), C(200, 110, 20), C(240, 240, 240), C(70, 220, 240)
 	local body = bez(V(0, 9, -2), V(3, 4, 1), V(-4, 3, 5), V(-1, 1.8, 8), 7)
 	for _, p in bez(V(-1, 1.8, 8), V(3, 1.2, 11), V(4, 5, 12.6), V(1, 6.4, 12.6), 6) do

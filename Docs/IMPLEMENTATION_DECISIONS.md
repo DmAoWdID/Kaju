@@ -106,6 +106,14 @@ The GDD says combat happens in a separate battle mode and should follow Jurassic
 - End states are animated too: knockout (tip over), capture (chains tighten, flash), Defeat for Cells (dissolves into cells), escape, retreat.
 - Placeholder effects only (parts, Highlight, BillboardGui); no sounds or particle textures yet.
 
+### D-16 Riding your kaijus (not in the GDD)
+- Any owned kaiju can be ridden (Collection → **Ride**). Only one at a time; **Dismount** in the HUD or on the card.
+- The rider sits on a per-species saddle point (on the back; on a shoulder for tall titans; on the head for Wormhole) and steers with the normal movement controls. No jumping while riding.
+- Ride speed uses the documented **Mobility** stat: `min(32, 14 + 0.1 × Mobility)` (Popcorn 14.5, Kragmor 17, Emperor 30). Provisional (`GameConfig.Riding`).
+- A ridden kaiju leaves its enclosure (shown as "out riding") and **earns no income** until dismounted.
+- Starting a battle, dying, or fusing away the ridden kaiju dismounts automatically.
+- Mounts don't collide with the world (they pass through trees and rocks). This is a simplification for the first version.
+
 ## Open questions for the designer
 
 1. Full text of GDD section 15 onward (file is truncated).
@@ -118,3 +126,4 @@ The GDD says combat happens in a separate battle mode and should follow Jurassic
 8. Fusion beyond level 10: is our reading of fusion gates at 10/20/30 right (D-14)? Should fusion cost anything? Should the consumed kaiju refund Cells?
 9. Meaning of "supergiant star" (Popcorn), "50 (150)" (Wormhole mobility), and "\*" on "Distance Traveling".
 10. Can kaijus placed in the park also be used in battles? (Currently: yes.)
+11. Is riding part of the design? Should it be limited (KL, level, a saddle item)? Should mounts collide with the world? (D-16)

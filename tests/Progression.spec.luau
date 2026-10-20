@@ -87,6 +87,12 @@ describe("Progression", function()
 		eq(Progression.findFusionPartner(owned, owned.k4), nil)
 	end)
 
+	it("ride speed grows with Mobility and is capped", function()
+		truthy(Progression.rideSpeed(150) > Progression.rideSpeed(5), "faster with mobility")
+		eq(Progression.rideSpeed(0), GameConfig.Riding.speedBase)
+		eq(Progression.rideSpeed(10000), GameConfig.Riding.speedMax)
+	end)
+
 	it("rolls spawn KLs proportionally to weights", function()
 		eq(Progression.rollSpawnKL(0), 1)
 		eq(Progression.rollSpawnKL(0.9999), 5)

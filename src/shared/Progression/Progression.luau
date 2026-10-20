@@ -131,6 +131,12 @@ function Progression.incomePerSecond(kl: number, _level: number): number
 	return Progression.klConfig(kl).incomePerSecond
 end
 
+-- Walk speed while riding a kaiju with the given Mobility stat (provisional mapping, see D-16).
+function Progression.rideSpeed(mobility: number): number
+	local cfg = GameConfig.Riding
+	return math.min(cfg.speedMax, cfg.speedBase + mobility * cfg.speedPerMobility)
+end
+
 function Progression.cellsForDefeat(kl: number): number
 	return Progression.klConfig(kl).cellsOnDefeat
 end

@@ -37,6 +37,12 @@ type Session = {
 local COMBAT = GameConfig.Combat
 local START_DISTANCE_SLACK = 10
 local sessions: { [Player]: Session } = {}
+local beforeStart: (Player) -> () = function() end
+
+-- Called right before a battle starts (e.g. to dismount a ridden kaiju).
+function BattleService.setBeforeStart(fn: (Player) -> ())
+	beforeStart = fn
+end
 
 local function humanoidOf(player: Player): Humanoid?
 	local character = player.Character
@@ -145,6 +151,7 @@ local function startBattle(player: Player, wildId: string)
 	if not WildKaijuService.engage(wildId, player, position) then
 		return
 	end
+	beforeStart(player)
 
 	local session: Session = {
 		player = player,

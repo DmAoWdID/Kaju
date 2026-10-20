@@ -7,6 +7,7 @@ local UI = script.Parent.UI
 local ClientState = require(Controllers.ClientState)
 local BuildController = require(Controllers.BuildController)
 local KaijuAnimator = require(Controllers.KaijuAnimator)
+local RideController = require(Controllers.RideController)
 local UIKit = require(UI.UIKit)
 local Toasts = require(UI.Toasts)
 local Hud = require(UI.Hud)
@@ -21,6 +22,7 @@ Toasts.init(gui)
 ClientState.setToastHandler(Toasts.show)
 ClientState.init()
 KaijuAnimator.init()
+RideController.init()
 
 -- Only one panel open at a time.
 local panels = {}

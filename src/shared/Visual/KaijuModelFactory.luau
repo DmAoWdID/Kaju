@@ -311,6 +311,11 @@ local function finalize(model: Model, species: Types.KaijuSpecies, opts: BuildOp
 	-- Keep the pivot at the build origin (the feet), not Root's centre.
 	root.PivotOffset = root.CFrame:ToObjectSpace(CFrame.new())
 
+	if model:GetAttribute("SaddleOffset") == nil then
+		-- no design saddle: sit on top of the bounding box
+		model:SetAttribute("SaddleOffset", Vector3.new(bboxCf.X, bboxCf.Y + bboxSize.Y / 2, bboxCf.Z))
+	end
+
 	if opts and opts.ring then
 		local radius = math.max(bboxSize.X, bboxSize.Z) * 0.6
 		local ring = Instance.new("Part")
@@ -433,12 +438,30 @@ function KaijuModelFactory.build(species: Types.KaijuSpecies, opts: BuildOptions
 			bone:SetAttribute("AnimAmp", group.amp)
 			bone.Parent = model
 		end
+		local saddleMarker: BasePart? = nil
+		if kit.saddlePoint then
+			local marker = Instance.new("Part")
+			marker.Name = "SaddleMarker"
+			marker.Size = Vector3.one * 0.2
+			marker.CFrame = CFrame.new(kit.saddlePoint)
+			marker.Transparency = 1
+			marker.Anchored = true
+			marker.CanCollide = false
+			marker.CanQuery = false
+			marker.Parent = model
+			saddleMarker = marker
+		end
 		model.WorldPivot = CFrame.new()
 		local _, size = model:GetBoundingBox()
 		local presence = math.max(size.Y, 0.6 * math.max(size.X, size.Z))
 		local target = DESIGN_PRESENCE * GameConfig.KL[species.kl].modelScale * species.visual.scale * extra
 		if presence > 0 then
 			model:ScaleTo(target / presence)
+		end
+		if saddleMarker then
+			-- model is still at the origin, so the marker's position is the saddle offset from the feet pivot
+			model:SetAttribute("SaddleOffset", saddleMarker.Position)
+			saddleMarker:Destroy()
 		end
 	else
 		model = Instance.new("Model")

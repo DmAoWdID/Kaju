@@ -19,6 +19,7 @@ local KaijuCollectionService = {}
 export type Hooks = {
 	isInBattle: (Player) -> boolean,
 	onParkChanged: (Player) -> (), -- re-render the player's park (a fused partner may leave an enclosure)
+	onKaijuRemoved: ((Player, string) -> ())?, -- an owned kaiju is about to disappear (e.g. stop riding it)
 }
 
 local hooks: Hooks = {
@@ -96,6 +97,9 @@ local function onFuse(player: Player, payload)
 	local ok, reason = Progression.canFuse(primary, partner)
 	if not ok then
 		return false, reason
+	end
+	if hooks.onKaijuRemoved then
+		hooks.onKaijuRemoved(player, partner.instanceId)
 	end
 	PlayerDataSchema.fuse(data, primary.instanceId, partner.instanceId)
 	hooks.onParkChanged(player)
