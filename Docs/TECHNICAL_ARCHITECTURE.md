@@ -70,6 +70,10 @@ Double-reward protection: a battle session's `resolved` flag is set before any r
 - `PlayerDataSchema.reconcile` sanitises loaded data. If the save comes from a newer schema version, the session is marked non-persistent.
 - Autosave every 90 s, on leave, and on `BindToClose`.
 
-## Replacing placeholder models
+## Placeholder models
+
+Each species has a hand-built part model in `src/shared/Visual/KaijuDesigns.luau`, drawn from its concept sheet using the primitives in `ModelKit.luau` (tapered tubes along curves, 3D triangles for wings/fins/crests, spikes, flat blades, eyes, teeth). The factory rescales every design so size follows KL (`GameConfig.KL[n].modelScale` x `species.visual.scale`). Species without a design fall back to a generic body plan (`visual.archetype`), which is also the only thing that decides whether a wild kaiju hovers.
+
+### Replacing placeholder models
 
 Add `ReplicatedStorage.KaijuModels.<speciesId>` (a Model with its pivot at the feet, facing −Z). `KaijuModelFactory.build` will clone it instead of generating parts. The world, park and UI portraits all use the factory.

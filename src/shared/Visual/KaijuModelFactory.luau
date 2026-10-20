@@ -1,5 +1,6 @@
 --!strict
--- Builds placeholder kaiju models from simple parts, driven by species.visual.
+-- Builds placeholder kaiju models. Each species has a hand-built design (KaijuDesigns, following the
+-- concept art); species without one fall back to a generic body plan from species.visual.archetype.
 --
 -- REPLACING WITH REAL MODELS: put a Model named after the species id (e.g. "kragmor") inside
 -- ReplicatedStorage.KaijuModels. Its pivot must sit at the feet, facing -Z. The factory then clones that
@@ -12,6 +13,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameConfig = require("../Config/GameConfig")
+local KaijuDesigns = require("./KaijuDesigns")
+local ModelKit = require("./ModelKit")
 local Palette = require("./Palette")
 local Types = require("../Types")
 
@@ -24,7 +27,10 @@ export type BuildOptions = {
 	ring: boolean?,
 }
 
-local BASE_UNIT = 1.6 -- studs per placeholder unit at KL scale 1
+local BASE_UNIT = 1.6 -- studs per placeholder unit at KL scale 1 (generic body plans)
+-- Hand-built designs are rescaled so their "presence" = max(height, 0.6 * max(width, length)) equals
+-- DESIGN_PRESENCE studs x KL modelScale x species.visual.scale.
+local DESIGN_PRESENCE = 11
 
 local function newPart(model: Model, name: string, size: Vector3, cf: CFrame, color: Color3): Part
 	local p = Instance.new("Part")
@@ -369,8 +375,19 @@ function KaijuModelFactory.build(species: Types.KaijuSpecies, opts: BuildOptions
 	local overrides = ReplicatedStorage:FindFirstChild("KaijuModels")
 	local template = overrides and overrides:FindFirstChild(species.id)
 	local model: Model
+	local design = (KaijuDesigns :: any)[species.id]
 	if template and template:IsA("Model") then
 		model = prepareOverride(template, species, extra)
+	elseif design then
+		model = Instance.new("Model")
+		design(ModelKit.new(model, #species.id))
+		model.WorldPivot = CFrame.new()
+		local _, size = model:GetBoundingBox()
+		local presence = math.max(size.Y, 0.6 * math.max(size.X, size.Z))
+		local target = DESIGN_PRESENCE * GameConfig.KL[species.kl].modelScale * species.visual.scale * extra
+		if presence > 0 then
+			model:ScaleTo(target / presence)
+		end
 	else
 		model = Instance.new("Model")
 		local visual = species.visual

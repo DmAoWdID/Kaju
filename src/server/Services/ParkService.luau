@@ -106,7 +106,7 @@ local function buildEnclosure(parent: Instance, pad: BasePart, enclosure, data):
 		local _, bbox = kaiju:GetBoundingBox()
 		local fit = (footprint * 0.7) / math.max(bbox.X, bbox.Z, 1)
 		if fit < 1 then
-			kaiju:ScaleTo(fit)
+			kaiju:ScaleTo(kaiju:GetScale() * fit) -- ScaleTo is absolute; keep the factory's scale
 		end
 		-- Kaiju models face their -Z; turn them around so they face the entrance (pad +Z).
 		KaijuModelFactory.place(kaiju, base * CFrame.new(0, 0.3, 0) * CFrame.Angles(0, math.pi, 0))

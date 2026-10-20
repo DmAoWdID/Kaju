@@ -75,7 +75,7 @@ Please report any Output errors. That is the fastest way to fix runtime issues I
 ## Known issues / limitations
 
 - DataStore persistence only runs on live servers (or Studio with API access + `useDataStoreInStudio`); not yet tested there.
-- Placeholder art only; per-species colors come from the PDF pages. Real models can be dropped into `ReplicatedStorage.KaijuModels` (see `Docs/TECHNICAL_ARCHITECTURE.md`).
+- Placeholder art only, but each of the 18 kaijus has a hand-built part model following its concept sheet (`KaijuDesigns.luau`, 24–225 parts each). Checked with an offline preview render, not yet in Studio. Real models can be dropped into `ReplicatedStorage.KaijuModels` (see `Docs/TECHNICAL_ARCHITECTURE.md`).
 - Fusion gates at 10/20/30 are our interpretation of the GDD (see D-14). Fusion is unit-tested but **not yet play-tested in Studio**.
 - Traits have no combat effect. Team size is 1.
 - Enclosure placement uses a fixed 3×3 grid (no free placement, moving or selling yet).

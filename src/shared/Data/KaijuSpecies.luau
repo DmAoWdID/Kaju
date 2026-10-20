@@ -192,7 +192,7 @@ local list: { KaijuSpecies } = {
 			{ kind = "tailLength", text = "Tail: ~15m", meters = 15 },
 			{ kind = "wingspan", text = "Wingspan: ~50m", meters = 50 },
 		},
-		visual = { archetype = "flyer", primary = { 28, 28, 34 }, secondary = { 60, 56, 64 }, accent = { 236, 122, 30 }, scale = 1 },
+		visual = { archetype = "quadruped", primary = { 28, 28, 34 }, secondary = { 60, 56, 64 }, accent = { 236, 122, 30 }, scale = 1 },
 	},
 	{
 		id = "cataboulder",
