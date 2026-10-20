@@ -1,12 +1,12 @@
 --!nonstrict
--- Battle overlay. Purely a view of server state (BattleSync) plus buttons that send requests.
+-- Battle screen: a 3D arena (BattleArena) plus HP/AP plates at the top and an action bar at the bottom.
+-- It is a view of server state only. BattleSync payloads are queued and processed in order, so each
+-- round's animation finishes before the next state is shown.
 -- Phases: select (pick your kaiju) -> fight (Attack / Defend / Save) -> reward (capture or cells) -> ended.
 
-local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
-local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local KaijuRegistry = require(Shared.Data.KaijuRegistry)
@@ -14,81 +14,70 @@ local Palette = require(Shared.Visual.Palette)
 local Remotes = require(Shared.Net.Remotes)
 
 local ClientState = require(script.Parent.Parent.Controllers.ClientState)
-local KaijuViewport = require(script.Parent.KaijuViewport)
+local BattleArena = require(script.Parent.Parent.Battle.BattleArena)
 local UIKit = require(script.Parent.UIKit)
 
 local BattleUI = {}
 
 local C = UIKit.Colors
-local player = Players.LocalPlayer
 
 local overlay: Frame = nil
 local title: TextLabel = nil
 local logLabel: TextLabel = nil
-local cards = {}
+local plates = {}
 local rows = {}
 local fightButtons = {}
 local rewardButtons = {}
 local selectList: ScrollingFrame = nil
 local isOpen = false
-local busy = false
+local busy = false -- a request is in flight
+local animating = false -- a round is playing
 local current = nil
+local lastEventsKey: string? = nil
+local queue = {}
+local processing = false
 local onOpenChanged: ((boolean) -> ())? = nil
 
-local function makeCard(parent: Instance, side: string)
+-- ───────────────────────────── plates ─────────────────────────────
+
+local function makePlate(parent: Instance, side: string)
 	local isPlayer = side == "player"
-	local frame = UIKit.new("Frame", {
-		Name = side .. "Card",
-		BackgroundColor3 = C.panelLight,
-		Size = UDim2.new(0.5, -8, 0, 144),
-		LayoutOrder = if isPlayer then 1 else 2,
-		Parent = parent,
-	}, { UIKit.corner(14), UIKit.padding(10) })
-	local viewport = KaijuViewport.create({
-		Size = UDim2.fromOffset(112, 112),
-		Position = if isPlayer then UDim2.fromOffset(0, 0) else UDim2.new(1, -112, 0, 0),
-		Parent = frame,
-	})
-	local info = UIKit.new("Frame", {
-		BackgroundTransparency = 1,
-		Position = if isPlayer then UDim2.fromOffset(122, 0) else UDim2.fromOffset(0, 0),
-		Size = UDim2.new(1, -122, 1, 0),
-		Parent = frame,
-	})
 	local align = if isPlayer then Enum.TextXAlignment.Left else Enum.TextXAlignment.Right
-	local name = UIKit.label("", { Font = UIKit.FontTitle, TextSize = 24, TextXAlignment = align, Size = UDim2.new(1, 0, 0, 28), Parent = info })
-	local sub = UIKit.label("", { TextSize = 16, TextColor3 = C.textDim, TextXAlignment = align, Position = UDim2.fromOffset(0, 30), Size = UDim2.new(1, 0, 0, 20), Parent = info })
-	local badge = UIKit.klBadge(1, {
+	local frame = UIKit.new("Frame", {
+		Name = side .. "Plate",
 		AnchorPoint = if isPlayer then Vector2.new(0, 0) else Vector2.new(1, 0),
-		Position = if isPlayer then UDim2.fromOffset(0, 54) else UDim2.new(1, 0, 0, 54),
-		Parent = info,
+		Position = if isPlayer then UDim2.fromOffset(0, 0) else UDim2.fromScale(1, 0),
+		Size = UDim2.fromOffset(400, 104),
+		BackgroundColor3 = C.panel,
+		BackgroundTransparency = 0.1,
+		Parent = parent,
+	}, { UIKit.corner(14), UIKit.stroke(C.stroke, 2), UIKit.padding(10) })
+	local name = UIKit.label("", { Font = UIKit.FontTitle, TextSize = 24, TextXAlignment = align, Size = UDim2.new(1, -70, 0, 28), Position = if isPlayer then UDim2.new() else UDim2.fromOffset(70, 0), Parent = frame })
+	local badge = UIKit.klBadge(1, {
+		AnchorPoint = if isPlayer then Vector2.new(1, 0) else Vector2.new(0, 0),
+		Position = if isPlayer then UDim2.new(1, 0, 0, 2) else UDim2.fromOffset(0, 2),
+		Parent = frame,
 	})
+	local sub = UIKit.label("", { TextSize = 15, TextColor3 = C.textDim, TextXAlignment = align, Position = UDim2.fromOffset(0, 28), Size = UDim2.new(1, 0, 0, 18), Parent = frame })
 	local hpBack = UIKit.new("Frame", {
 		BackgroundColor3 = Color3.fromRGB(30, 30, 38),
-		Position = UDim2.fromOffset(0, 84),
-		Size = UDim2.new(1, 0, 0, 16),
-		Parent = info,
-	}, { UIKit.corner(8) })
+		Position = UDim2.fromOffset(0, 50),
+		Size = UDim2.new(1, 0, 0, 18),
+		Parent = frame,
+	}, { UIKit.corner(9) })
 	local hpFill = UIKit.new("Frame", {
 		BackgroundColor3 = C.hp,
 		Size = UDim2.fromScale(1, 1),
 		AnchorPoint = if isPlayer then Vector2.new(0, 0) else Vector2.new(1, 0),
 		Position = if isPlayer then UDim2.fromScale(0, 0) else UDim2.fromScale(1, 0),
 		Parent = hpBack,
-	}, { UIKit.corner(8) })
-	local hpText = UIKit.label("", {
-		TextSize = 13,
-		Font = UIKit.FontBold,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Size = UDim2.fromScale(1, 1),
-		ZIndex = 3,
-		Parent = hpBack,
-	})
+	}, { UIKit.corner(9) })
+	local hpText = UIKit.label("", { TextSize = 13, Font = UIKit.FontBold, TextXAlignment = Enum.TextXAlignment.Center, Size = UDim2.fromScale(1, 1), ZIndex = 3, Parent = hpBack })
 	local apRow = UIKit.new("Frame", {
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(0, 104),
-		Size = UDim2.new(1, 0, 0, 18),
-		Parent = info,
+		Position = UDim2.fromOffset(0, 74),
+		Size = UDim2.new(1, 0, 0, 20),
+		Parent = frame,
 	}, {
 		UIKit.new("UIListLayout", {
 			FillDirection = Enum.FillDirection.Horizontal,
@@ -97,117 +86,75 @@ local function makeCard(parent: Instance, side: string)
 			SortOrder = Enum.SortOrder.LayoutOrder,
 		}),
 	})
-	UIKit.label("AP", { TextSize = 14, Font = UIKit.FontBold, TextColor3 = C.ap, Size = UDim2.fromOffset(22, 18), LayoutOrder = if isPlayer then 0 else 99, Parent = apRow })
+	UIKit.label("AP", { TextSize = 14, Font = UIKit.FontBold, TextColor3 = C.ap, Size = UDim2.fromOffset(22, 20), LayoutOrder = if isPlayer then 0 else 99, Parent = apRow })
 	local pips = {}
 	for i = 1, 5 do
 		pips[i] = UIKit.new("Frame", {
 			BackgroundColor3 = C.ap,
-			Size = UDim2.fromOffset(18, 18),
+			Size = UDim2.fromOffset(20, 20),
 			LayoutOrder = if isPlayer then i else 6 - i,
 			Parent = apRow,
-		}, { UIKit.corner(9) })
+		}, { UIKit.corner(10) })
 	end
-	return { frame = frame, viewport = viewport, name = name, sub = sub, badge = badge, hpFill = hpFill, hpText = hpText, pips = pips, lastHp = nil, mirror = not isPlayer }
+	return { frame = frame, name = name, badge = badge, sub = sub, hpFill = hpFill, hpText = hpText, pips = pips, hp = nil, maxHp = nil }
 end
 
-local function setCard(card, info)
+local function setHp(plate, hp: number, maxHp: number)
+	plate.hp, plate.maxHp = hp, maxHp
+	local ratio = math.clamp(hp / maxHp, 0, 1)
+	TweenService:Create(plate.hpFill, TweenInfo.new(0.3), { Size = UDim2.fromScale(ratio, 1) }):Play()
+	plate.hpFill.BackgroundColor3 = if ratio > 0.5 then C.hp elseif ratio > 0.25 then C.accent else C.bad
+	plate.hpText.Text = ("%d / %d HP"):format(math.max(0, hp), maxHp)
+end
+
+local function setPlate(plate, info)
 	if not info then
-		card.name.Text = "Choose a kaiju"
-		card.sub.Text = ""
-		card.badge.Visible = false
-		card.hpFill.Size = UDim2.fromScale(0, 1)
-		card.hpText.Text = ""
-		for _, pip in card.pips do
+		plate.name.Text = "Choose your kaiju"
+		plate.sub.Text = ""
+		plate.badge.Visible = false
+		plate.hpFill.Size = UDim2.fromScale(0, 1)
+		plate.hpText.Text = ""
+		for _, pip in plate.pips do
 			pip.Visible = false
 		end
-		KaijuViewport.show(card.viewport, nil)
-		card.lastHp = nil
 		return
 	end
-	card.name.Text = info.name
-	card.sub.Text = ("Level %d"):format(info.level)
-	card.badge.Visible = true
-	card.badge.Text = "KL " .. info.kl
-	card.badge.BackgroundColor3 = Palette.KL[info.kl]
-	KaijuViewport.show(card.viewport, info.speciesId, card.mirror)
+	plate.name.Text = info.name
+	plate.sub.Text = ("Level %d"):format(info.level)
+	plate.badge.Visible = true
+	plate.badge.Text = "KL " .. info.kl
+	plate.badge.BackgroundColor3 = Palette.KL[info.kl]
 	if info.hp then
-		local ratio = math.clamp(info.hp / info.maxHp, 0, 1)
-		TweenService:Create(card.hpFill, TweenInfo.new(0.35), { Size = UDim2.fromScale(ratio, 1) }):Play()
-		card.hpFill.BackgroundColor3 = if ratio > 0.5 then C.hp elseif ratio > 0.25 then C.accent else C.bad
-		card.hpText.Text = ("%d / %d HP"):format(info.hp, info.maxHp)
-		if card.lastHp and info.hp < card.lastHp then
-			card.frame.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
-			TweenService:Create(card.frame, TweenInfo.new(0.5), { BackgroundColor3 = C.panelLight }):Play()
-		end
-		card.lastHp = info.hp
-		for i, pip in card.pips do
+		setHp(plate, info.hp, info.maxHp)
+		for i, pip in plate.pips do
 			pip.Visible = i <= info.maxAp
 			pip.BackgroundTransparency = if i <= info.ap then 0 else 0.75
 		end
 	else
-		card.hpFill.Size = UDim2.fromScale(1, 1)
-		card.hpText.Text = ""
-		for _, pip in card.pips do
+		plate.hpFill.Size = UDim2.fromScale(1, 1)
+		plate.hpText.Text = ""
+		for _, pip in plate.pips do
 			pip.Visible = false
 		end
 	end
 end
 
-local function showRow(name: string)
+-- ───────────────────────────── rows / buttons ─────────────────────────────
+
+local function showRow(name: string?)
 	for key, row in rows do
 		row.Visible = key == name
 	end
 end
 
-local function setCamera(model: Model?)
-	local camera = Workspace.CurrentCamera
-	if not camera then
-		return
+local function refreshFightButtons()
+	local snap = current and current.snapshot
+	local canAct = snap ~= nil and current.phase == "fight" and not animating and not busy
+	for action, button in fightButtons do
+		UIKit.setEnabled(button, canAct and snap.available[action] == true)
 	end
-	if not model or not model.Parent then
-		camera.CameraType = Enum.CameraType.Custom
-		return
-	end
-	local character = player.Character
-	local root = character and character:FindFirstChild("HumanoidRootPart")
-	if not root then
-		return
-	end
-	local _, size = model:GetBoundingBox()
-	local target = model:GetPivot().Position + Vector3.new(0, size.Y * 0.45, 0)
-	local away = Vector3.new(root.Position.X - target.X, 0, root.Position.Z - target.Z)
-	away = if away.Magnitude > 0.1 then away.Unit else Vector3.new(0, 0, 1)
-	local distance = math.max(size.X, size.Y, size.Z) * 1.1 + 18
-	local camPos = target + away * distance + Vector3.new(0, size.Y * 0.35 + 6, 0)
-	camera.CameraType = Enum.CameraType.Scriptable
-	-- shift the view up so the kaiju sits above the battle panel
-	local goal = CFrame.lookAt(camPos, target) * CFrame.new(0, -size.Y * 0.35, 0)
-	TweenService:Create(camera, TweenInfo.new(0.6, Enum.EasingStyle.Quad), { CFrame = goal }):Play()
-end
-
-local function open()
-	if isOpen then
-		return
-	end
-	isOpen = true
-	overlay.Visible = true
-	ProximityPromptService.Enabled = false
-	for _, card in cards do
-		card.lastHp = nil
-	end
-	if onOpenChanged then
-		onOpenChanged(true)
-	end
-end
-
-local function close()
-	isOpen = false
-	current = nil
-	overlay.Visible = false
-	ProximityPromptService.Enabled = true
-	setCamera(nil)
-	if onOpenChanged then
-		onOpenChanged(false)
+	if snap then
+		fightButtons.Attack.Text = ("ATTACK\nuse %d AP"):format(snap.player.ap)
 	end
 end
 
@@ -216,8 +163,10 @@ local function send(action: string, payload)
 		return
 	end
 	busy = true
+	refreshFightButtons()
 	ClientState.request(action, payload)
 	busy = false
+	refreshFightButtons()
 end
 
 local function rebuildSelectList()
@@ -256,37 +205,122 @@ local function rebuildSelectList()
 	end
 end
 
-local function render(payload)
+-- ───────────────────────────── flow ─────────────────────────────
+
+local function open(payload)
+	isOpen = true
+	lastEventsKey = nil
+	overlay.Visible = true
+	ProximityPromptService.Enabled = false
+	setPlate(plates.player, nil)
+	setPlate(plates.wild, payload.wild)
+	showRow(nil)
+	BattleArena.start(payload.wild.speciesId)
+	if onOpenChanged then
+		onOpenChanged(true)
+	end
+end
+
+local function close()
+	isOpen = false
+	current = nil
+	table.clear(queue)
+	overlay.Visible = false
+	ProximityPromptService.Enabled = true
+	BattleArena.stop()
+	if onOpenChanged then
+		onOpenChanged(false)
+	end
+end
+
+local function eventsKey(snap): string?
+	if not snap or not snap.events or #snap.events == 0 then
+		return nil
+	end
+	return ("%d|%s|%d"):format(snap.round, snap.state, #snap.events)
+end
+
+-- Plays the snapshot's round once (payloads can repeat the same final round).
+local function playRoundIfNew(snap)
+	local key = eventsKey(snap)
+	if not key or key == lastEventsKey then
+		return false
+	end
+	lastEventsKey = key
+	animating = true
+	refreshFightButtons()
+	title.Text = "…"
+	local lines = {}
+	for _, e in snap.events do
+		table.insert(lines, e.text)
+	end
+	logLabel.Text = table.concat(lines, "   ")
+	BattleArena.playRound(snap.events, function(targetSide, damage)
+		local plate = plates[targetSide]
+		if plate.hp and plate.maxHp then
+			setHp(plate, plate.hp - damage, plate.maxHp)
+		end
+	end)
+	animating = false
+	return true
+end
+
+local HEADLINES = {
+	captured = "Captured!",
+	cells = "Kaiju Cells collected",
+	escaped = "It escaped…",
+	defeat = "Defeated",
+	draw = "Draw",
+	forfeit = "Battle over",
+}
+
+local function process(payload)
+	if not isOpen then
+		if payload.phase == "ended" and not payload.snapshot then
+			-- e.g. timeout notice for a battle whose screen was already closed
+			ClientState.toast((payload.result and payload.result.text) or "Battle over", "info")
+			return
+		end
+		open(payload)
+	end
 	current = payload
 	local snap = payload.snapshot
-	setCard(cards.wild, if snap then snap.wild else payload.wild)
-	setCard(cards.player, if snap then snap.player else nil)
 
 	if payload.phase == "select" then
 		title.Text = ("A wild %s appears! Choose your kaiju."):format(payload.wild.name)
 		logLabel.Text = ""
 		rebuildSelectList()
 		showRow("select")
-	elseif payload.phase == "fight" then
+		return
+	end
+
+	if snap and not BattleArena.hasPlayer(snap.player.speciesId) and payload.phase ~= "ended" then
+		showRow(nil)
+		title.Text = ("Go, %s!"):format(snap.player.name)
+		setPlate(plates.player, snap.player)
+		setPlate(plates.wild, snap.wild)
+		BattleArena.setPlayer(snap.player.speciesId)
+	end
+
+	if payload.phase == "fight" then
+		if playRoundIfNew(snap) then
+			setPlate(plates.player, snap.player)
+			setPlate(plates.wild, snap.wild)
+		else
+			setPlate(plates.player, snap.player)
+			setPlate(plates.wild, snap.wild)
+			logLabel.Text = "Attack spends all your AP — Save first for a stronger hit. Defend blocks half."
+		end
 		title.Text = ("Round %d  ·  Your move"):format(snap.round)
-		local lines = {}
-		for _, e in snap.events or {} do
-			table.insert(lines, e.text)
-		end
-		logLabel.Text = if #lines > 0 then table.concat(lines, "\n") else "Spend action points to Attack, Defend, or Save them for a stronger attack."
-		local ap = snap.player.ap
-		fightButtons.Attack.Text = ("ATTACK\nuse %d AP"):format(ap)
-		UIKit.setEnabled(fightButtons.Attack, snap.available.Attack)
-		UIKit.setEnabled(fightButtons.Defend, snap.available.Defend)
-		UIKit.setEnabled(fightButtons.Save, snap.available.Save)
 		showRow("fight")
+		refreshFightButtons()
 	elseif payload.phase == "reward" then
+		showRow(nil)
+		playRoundIfNew(snap)
+		setPlate(plates.player, snap.player)
+		setPlate(plates.wild, snap.wild)
+		BattleArena.knockOut("wild")
 		title.Text = "Victory!"
-		local lines = {}
-		for _, e in snap.events or {} do
-			table.insert(lines, e.text)
-		end
-		logLabel.Text = table.concat(lines, "\n")
 		local reward = payload.reward
 		if reward.canCapture then
 			rewardButtons.capture.Text = ("CAPTURE\nwith %s"):format(reward.chainName)
@@ -298,20 +332,45 @@ local function render(payload)
 		rewardButtons.cells.Text = ("DEFEAT\n+%d Kaiju Cells"):format(reward.cells)
 		showRow("reward")
 	elseif payload.phase == "ended" then
+		showRow(nil)
 		local result = payload.result or {}
-		local headline = ({
-			captured = "Captured!",
-			cells = "Kaiju Cells collected",
-			escaped = "It escaped…",
-			defeat = "Defeated",
-			draw = "Draw",
-			forfeit = "Battle over",
-		})[result.outcome] or "Battle over"
-		title.Text = headline
+		if snap and playRoundIfNew(snap) then
+			setPlate(plates.player, snap.player)
+			setPlate(plates.wild, snap.wild)
+		end
+		if result.outcome == "defeat" then
+			BattleArena.knockOut("player")
+		elseif result.outcome == "captured" then
+			BattleArena.capture()
+		elseif result.outcome == "cells" then
+			BattleArena.dissolve(result.cells)
+		elseif result.outcome == "escaped" then
+			BattleArena.escape()
+		elseif result.outcome == "forfeit" then
+			BattleArena.retreat()
+		end
+		title.Text = HEADLINES[result.outcome] or "Battle over"
 		logLabel.Text = result.text or ""
 		showRow("ended")
 	end
 end
+
+local function pump()
+	if processing then
+		return
+	end
+	processing = true
+	while #queue > 0 do
+		local payload = table.remove(queue, 1)
+		local ok, err = pcall(process, payload)
+		if not ok then
+			warn("[BattleUI] " .. tostring(err))
+		end
+	end
+	processing = false
+end
+
+-- ───────────────────────────── init ─────────────────────────────
 
 -- onToggle(isOpen) lets the HUD hide its menu during battles.
 function BattleUI.init(gui: ScreenGui, onToggle: (boolean) -> ())
@@ -325,41 +384,59 @@ function BattleUI.init(gui: ScreenGui, onToggle: (boolean) -> ())
 		ZIndex = 20,
 		Parent = gui,
 	})
-	local panel = UIKit.new("Frame", {
-		Name = "Panel",
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -12),
-		Size = UDim2.fromOffset(900, 372),
-		BackgroundColor3 = C.panel,
-		BackgroundTransparency = 0.05,
-		Parent = overlay,
-	}, { UIKit.corner(18), UIKit.stroke(C.stroke, 2), UIKit.padding(12) })
-	UIKit.autoScale(panel)
 
+	-- top: HP/AP plates + title
+	local top = UIKit.new("Frame", {
+		Name = "Top",
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0, 10),
+		Size = UDim2.fromOffset(1100, 150),
+		BackgroundTransparency = 1,
+		Parent = overlay,
+	})
+	UIKit.autoScale(top)
+	plates.player = makePlate(top, "player")
+	plates.wild = makePlate(top, "wild")
+	UIKit.label("VS", {
+		Font = UIKit.FontTitle,
+		TextSize = 34,
+		TextColor3 = C.accent,
+		TextStrokeTransparency = 0.3,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0, 30),
+		Size = UDim2.fromOffset(120, 40),
+		Parent = top,
+	})
 	title = UIKit.label("", {
 		Font = UIKit.FontTitle,
 		TextSize = 26,
+		TextStrokeTransparency = 0.4,
 		TextXAlignment = Enum.TextXAlignment.Center,
-		Size = UDim2.new(1, 0, 0, 30),
-		Parent = panel,
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.new(0.5, 0, 0, 114),
+		Size = UDim2.new(1, 0, 0, 32),
+		Parent = top,
 	})
-	local cardRow = UIKit.new("Frame", {
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(0, 36),
-		Size = UDim2.new(1, 0, 0, 144),
-		Parent = panel,
-	}, { UIKit.list(Enum.FillDirection.Horizontal, 16) })
-	cards.player = makeCard(cardRow, "player")
-	cards.wild = makeCard(cardRow, "wild")
 
+	-- bottom: log + action rows
+	local bottom = UIKit.new("Frame", {
+		Name = "Bottom",
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, -10),
+		Size = UDim2.fromOffset(940, 140),
+		BackgroundColor3 = C.panel,
+		BackgroundTransparency = 0.15,
+		Parent = overlay,
+	}, { UIKit.corner(18), UIKit.stroke(C.stroke, 2), UIKit.padding(10) })
+	UIKit.autoScale(bottom)
 	logLabel = UIKit.label("", {
-		TextSize = 16,
+		TextSize = 15,
 		TextColor3 = C.textDim,
 		TextXAlignment = Enum.TextXAlignment.Center,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		Position = UDim2.fromOffset(0, 186),
-		Size = UDim2.new(1, 0, 0, 56),
-		Parent = panel,
+		Size = UDim2.new(1, 0, 0, 24),
+		TextTruncate = Enum.TextTruncate.AtEnd,
+		Parent = bottom,
 	})
 
 	local function row(name: string): Frame
@@ -368,15 +445,14 @@ function BattleUI.init(gui: ScreenGui, onToggle: (boolean) -> ())
 			BackgroundTransparency = 1,
 			AnchorPoint = Vector2.new(0, 1),
 			Position = UDim2.fromScale(0, 1),
-			Size = UDim2.new(1, 0, 0, 92),
+			Size = UDim2.new(1, 0, 0, 86),
 			Visible = false,
-			Parent = panel,
+			Parent = bottom,
 		})
 		rows[name] = r
 		return r
 	end
 
-	-- select
 	local selectRow = row("select")
 	selectList = UIKit.new("ScrollingFrame", {
 		BackgroundTransparency = 1,
@@ -392,22 +468,25 @@ function BattleUI.init(gui: ScreenGui, onToggle: (boolean) -> ())
 		send(Remotes.Actions.BattleForfeit)
 	end, { AnchorPoint = Vector2.new(1, 0), Position = UDim2.fromScale(1, 0), Size = UDim2.fromOffset(136, 64), Parent = selectRow })
 
-	-- fight
 	local fightRow = row("fight")
 	UIKit.list(Enum.FillDirection.Horizontal, 12, Enum.HorizontalAlignment.Center).Parent = fightRow
 	local function actionButton(action: string, text: string, color: Color3, order: number)
 		fightButtons[action] = UIKit.button(text, color, function()
+			if animating then
+				return
+			end
 			send(Remotes.Actions.BattleAction, { action = action })
-		end, { Size = UDim2.fromOffset(196, 80), TextSize = 20, LayoutOrder = order, Parent = fightRow })
+		end, { Size = UDim2.fromOffset(200, 80), TextSize = 20, LayoutOrder = order, Parent = fightRow })
 	end
 	actionButton("Attack", "ATTACK", C.attack, 1)
 	actionButton("Defend", "DEFEND\nuse 1 AP", C.defend, 2)
 	actionButton("Save", "SAVE\nkeep AP", C.save, 3)
 	UIKit.button("Retreat", C.disabled, function()
-		send(Remotes.Actions.BattleForfeit)
+		if not animating then
+			send(Remotes.Actions.BattleForfeit)
+		end
 	end, { Size = UDim2.fromOffset(120, 80), LayoutOrder = 4, Parent = fightRow })
 
-	-- reward
 	local rewardRow = row("reward")
 	UIKit.list(Enum.FillDirection.Horizontal, 16, Enum.HorizontalAlignment.Center).Parent = rewardRow
 	rewardButtons.capture = UIKit.button("CAPTURE", Color3.fromRGB(80, 150, 220), function()
@@ -417,21 +496,16 @@ function BattleUI.init(gui: ScreenGui, onToggle: (boolean) -> ())
 		send(Remotes.Actions.BattleResolve, { choice = "cells" })
 	end, { Size = UDim2.fromOffset(280, 80), TextSize = 20, LayoutOrder = 2, Parent = rewardRow })
 
-	-- ended
 	local endedRow = row("ended")
 	UIKit.list(Enum.FillDirection.Horizontal, 12, Enum.HorizontalAlignment.Center).Parent = endedRow
 	UIKit.button("Continue", C.good, close, { Size = UDim2.fromOffset(240, 72), TextSize = 22, Parent = endedRow })
 
 	Remotes.event(Remotes.Events.BattleSync).OnClientEvent:Connect(function(payload)
-		if type(payload) ~= "table" then
+		if type(payload) ~= "table" or type(payload.wild) ~= "table" then
 			return
 		end
-		local starting = not isOpen
-		open()
-		render(payload)
-		if starting then
-			setCamera(payload.model)
-		end
+		table.insert(queue, payload)
+		task.spawn(pump)
 	end)
 
 	ClientState.onChanged(function(scope)

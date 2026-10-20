@@ -95,6 +95,17 @@ Hub island (spawn) → bridge → Wilds island. The 8 personal park plots per se
 ### D-13 Persistence
 DataStore persistence with a session lock (`UpdateAsync`). **In Studio it is disabled by default** (`Persistence.useDataStoreInStudio = false`), so test sessions never touch real data. The HUD shows "Test mode: progress is not saved". If a live load fails, the session runs on temporary data and is never saved.
 
+### D-15 Battle presentation (inspired by Jurassic World: The Game)
+The GDD says combat happens in a separate battle mode and should follow Jurassic World: The Game.
+- Each battling player gets a **client-only 3D arena**: a floating stone platform far from the shared world (`BattleArena`, origin 0,250,6000). Nothing is replicated, so many battles can run at once.
+- Side-on camera framed to fit both kaijus. Your kaiju is on the left, the wild one on the right; each faces the other, turned slightly towards the camera.
+- The server's round events are acted out in order:
+  - Defend and Save first: blue shield bubble and brace pose / gold charge ring and "+AP"
+  - then attacks: wind-up (bigger with more AP), lunge, impact flash, recoil, camera shake and a floating damage number ("BLOCKED n" when it hits a shield)
+- HP bars drop at the moment of impact. Action buttons are locked while a round plays.
+- End states are animated too: knockout (tip over), capture (chains tighten, flash), Defeat for Cells (dissolves into cells), escape, retreat.
+- Placeholder effects only (parts, Highlight, BillboardGui); no sounds or particle textures yet.
+
 ## Open questions for the designer
 
 1. Full text of GDD section 15 onward (file is truncated).

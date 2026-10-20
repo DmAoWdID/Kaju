@@ -19,7 +19,8 @@ _Last updated: 2026-10-20. First playable milestone (vertical slice) implemented
 - **Kaiju data**: all 18 documented species, verbatim from `Docs/Kaju game.pdf`, with validation (missing fields, bad types, duplicate ids/names, KL range, 3 traits, stat totals). Ambiguities are logged in `Docs/IMPLEMENTATION_DECISIONS.md`.
 - **World**: hub island with spawn → bridge → Wilds island with scenery; 8 identical personal park plots.
 - **Wild kaijus**: a guaranteed Kragmor nearest the bridge, plus 3 KL-weighted random spawns. They wander, show a nameplate with a KL badge and a colored KL ground ring, and have an **E / tap prompt "Battle"**. They respawn after capture or defeat.
-- **Turn-based battle**: server-validated start (distance, one battle per player, one player per wild kaiju). Pick your kaiju, then Attack / Defend / Save with action points. Shows HP bars, AP pips, round log, victory/defeat/draw, Retreat, idle timeout.
+- **Turn-based battle**: server-validated start (distance, one battle per player, one player per wild kaiju). Pick your kaiju, then Attack / Defend / Save with action points. Has victory/defeat/draw, Retreat and an idle timeout.
+- **3D battle arena** (Jurassic World: The Game style, client-only): both kaijus face off on a floating arena and act out each round (lunges, hits, damage numbers, shields, charge rings, knockouts, capture chains, cell dissolve). HP/AP plates at the top, actions at the bottom (D-15).
 - **Reward choice**: Capture with chain (blocked with an explanation if the chain is too short) or Defeat for Kaiju Cells. Granted once, server-side.
 - **Collection** panel: species, KL, level, threat, all stats, traits, park status, Level up (Kaiju Cells), **Fuse** at levels 10/20/30 (consumes an identical same-level duplicate, +1 level, max 40), Place in park / Remove.
 - **Studio-only dev buttons** under the currencies (+1k Cells, +$1k). The server accepts them only in Studio.
@@ -55,9 +56,9 @@ Open the **Output** window first.
 2. HUD (top-left) shows $250, 0 Cells, "Starter Chain (up to KL 1)", "Test mode: progress is not saved". A welcome toast appears.
 3. Walk north across the bridge, or press **Wilds**. **Kragmor** (grey crawler with crimson legs, green KL1 badge) is near the bridge end.
 4. Walk close: the **"Battle"** prompt appears. Press **E** (or tap it).
-5. The battle panel opens and the camera frames Kragmor. Pick your Kragmor.
-6. Use Save / Attack / Defend. Check that AP pips, HP bars and the log update and that Attack is disabled at 0 AP. Win (tip: Save to 2–3 AP, then Attack).
-7. On **Victory**: choose **Capture** → "Captured!" → Continue. Open **Collection**: 2 Kragmors. The wild Kragmor disappears and a new one respawns ~8 s later.
+5. The battle arena opens: wild Kragmor drops in on the right and the HP plates show at the top. Pick your Kragmor: it drops in on the left.
+6. Use Save / Attack / Defend. Check the animations: gold ring for Save, blue shield for Defend, lunge plus red flash and damage number for Attack. HP drops on impact, AP pips update, and buttons are locked while a round plays. Attack is disabled at 0 AP. Win (tip: Save to 2–3 AP, then Attack): the wild kaiju tips over.
+7. On **Victory**: choose **Capture** → chains wrap it → "Captured!" → Continue (the camera returns to your character). Open **Collection**: 2 Kragmors. The wild Kragmor disappears and a new one respawns ~8 s later.
 8. Battle again and choose **Defeat** → +10 Kaiju Cells in the HUD. In Collection, **Level up** costs 10 Cells.
 9. Try a KL2+ wild kaiju (if one spawned): after winning, Capture is disabled ("needs Reinforced Chain").
 10. Press **My Park**: you are teleported to your plot, and the starter Kragmor is in a fenced Small enclosure labelled "+1 / sec". Money ticks up by 1 per second.
