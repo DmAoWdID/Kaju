@@ -74,6 +74,10 @@ Double-reward protection: a battle session's `resolved` flag is set before any r
 
 Each species has a hand-built part model in `src/shared/Visual/KaijuDesigns.luau`, drawn from its concept sheet using the primitives in `ModelKit.luau` (tapered tubes along curves, 3D triangles for wings/fins/crests, spikes, flat blades, eyes, teeth). The factory rescales every design so size follows KL (`GameConfig.KL[n].modelScale` x `species.visual.scale`). Species without a design fall back to a generic body plan (`visual.archetype`), which is also the only thing that decides whether a wild kaiju hovers.
 
+### Procedural animation
+
+Designs wrap limbs in `k:group(name, pivot, kind, {phase, side, amp}, fn)`. For each group the factory creates an invisible bone at the pivot, joined to Root with a `Motor6D` ("AnimMotor"); the group's parts are welded to the bone, and the model is tagged `AnimatedKaiju`. The client-side `KaijuAnimator` sets each motor's `Transform` every frame from `KaijuGait.angles(...)`. That is pure, unit-tested math: the gait cycle advances with distance moved, and speed blends idle into walk. Kinds are `leg`, `arm`, `tail`, `wing`, `head` and `sway`. The server only moves Root, and `Transform` is client-local, so animation costs no network traffic.
+
 ### Replacing placeholder models
 
-Add `ReplicatedStorage.KaijuModels.<speciesId>` (a Model with its pivot at the feet, facing −Z). `KaijuModelFactory.build` will clone it instead of generating parts. The world, park and UI portraits all use the factory.
+Add `ReplicatedStorage.KaijuModels.<speciesId>` (overrides are not animated) (a Model with its pivot at the feet, facing −Z). `KaijuModelFactory.build` will clone it instead of generating parts. The world, park and UI portraits all use the factory.

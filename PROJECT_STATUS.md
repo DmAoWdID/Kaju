@@ -25,6 +25,7 @@ _Last updated: 2026-10-20. First playable milestone (vertical slice) implemented
 - **Collection** panel: species, KL, level, threat, all stats, traits, park status, Level up (Kaiju Cells), **Fuse** at levels 10/20/30 (consumes an identical same-level duplicate, +1 level, max 40), Place in park / Remove.
 - **Studio-only dev buttons** under the currencies (+1k Cells, +$1k). The server accepts them only in Studio.
 - **Park**: starter Kragmor in a free Small enclosure. Build Small/Medium/Large enclosures on a 3×3 grid (Shop → Build → tap a glowing slot). Housed kaijus are shown in their enclosure. KL → enclosure size is enforced.
+- **Kaiju animation** (client-side, procedural): legs walk in a gait synced to movement (diagonal pairs for quadrupeds, alternating for bipeds, rippling for Cataboulder), arms counter-swing, tails swish, wings flap, heads and necks nod, Jellqouia's tentacles sway. Idle motion when standing. Works for wild, park and battle-arena kaijus.
 - **Economy**: money and Kaiju Cells HUD, income per housed kaiju every second, chain shop (4 tiers).
 - **Save-ready data**: DataStore with session locking on live servers; memory-only in Studio (HUD says so).
 - Desktop + touch: on-screen buttons for everything; ProximityPrompt works with E, gamepad X, and tap.

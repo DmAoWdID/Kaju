@@ -102,11 +102,14 @@ local function buildEnclosure(parent: Instance, pad: BasePart, enclosure, data):
 	local species = occupant and KaijuRegistry.get(occupant.speciesId)
 	local labelText = size.displayName .. "\n(empty)"
 	if occupant and species then
-		local kaiju = KaijuModelFactory.build(species, { nameplate = true, nameplateText = ("KL %d · Lv %d"):format(species.kl, occupant.level) })
+		local plate = { nameplate = true, nameplateText = ("KL %d · Lv %d"):format(species.kl, occupant.level) }
+		local kaiju = KaijuModelFactory.build(species, plate)
 		local _, bbox = kaiju:GetBoundingBox()
 		local fit = (footprint * 0.7) / math.max(bbox.X, bbox.Z, 1)
 		if fit < 1 then
-			kaiju:ScaleTo(kaiju:GetScale() * fit) -- ScaleTo is absolute; keep the factory's scale
+			-- rebuild at the fitted size (rather than ScaleTo) so animation joints are built at that size
+			kaiju:Destroy()
+			kaiju = KaijuModelFactory.build(species, { nameplate = true, nameplateText = plate.nameplateText, scale = fit })
 		end
 		-- Kaiju models face their -Z; turn them around so they face the entrance (pad +Z).
 		KaijuModelFactory.place(kaiju, base * CFrame.new(0, 0.3, 0) * CFrame.Angles(0, math.pi, 0))

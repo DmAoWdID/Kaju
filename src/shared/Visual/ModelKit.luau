@@ -12,8 +12,29 @@ export type Opts = {
 	shadow: boolean?,
 }
 
+export type AnimGroup = {
+	pivot: Vector3, -- joint position in design units
+	kind: string, -- "leg" | "arm" | "tail" | "wing" | "head" | "sway" (see KaijuAnimator)
+	phase: number, -- 0..1 offset in the gait cycle
+	side: number, -- -1 left, 1 right, 0 centre (wings flap mirrored)
+	amp: number, -- amplitude multiplier
+}
+
 function ModelKit.new(model: Model, seed: number?)
-	return setmetatable({ model = model, rng = Random.new(seed or 1) }, ModelKit)
+	return setmetatable({ model = model, rng = Random.new(seed or 1), groups = {}, current = nil }, ModelKit)
+end
+
+-- Parts created inside fn() belong to animation group `name` and rotate around `pivot`
+-- (legs swing, tails sway, wings flap...). Re-using a name adds more parts to that group.
+function ModelKit:group(name: string, pivot: Vector3, kind: string, params: { phase: number?, side: number?, amp: number? }?, fn: () -> ())
+	if not self.groups[name] then
+		local p = params or {}
+		self.groups[name] = { pivot = pivot, kind = kind, phase = p.phase or 0, side = p.side or 0, amp = p.amp or 1 }
+	end
+	local previous = self.current
+	self.current = name
+	fn()
+	self.current = previous
 end
 
 function ModelKit:_part(className: string, size: Vector3, cf: CFrame, color: Color3, opts: Opts?): BasePart
@@ -30,6 +51,9 @@ function ModelKit:_part(className: string, size: Vector3, cf: CFrame, color: Col
 	p.CanQuery = false -- kaijus never block raycasts (e.g. build-mode slot picking)
 	p.TopSurface = Enum.SurfaceType.Smooth
 	p.BottomSurface = Enum.SurfaceType.Smooth
+	if self.current then
+		p:SetAttribute("AnimGroup", self.current)
+	end
 	p.Parent = self.model
 	return p
 end

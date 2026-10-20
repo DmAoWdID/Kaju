@@ -7,6 +7,7 @@ local specs = {
 	"./Progression.spec",
 	"./Combat.spec",
 	"./PlayerData.spec",
+	"./Gait.spec",
 }
 
 for _, path in specs do

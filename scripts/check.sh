@@ -32,7 +32,8 @@ fi
 echo "== Type check of pure modules (luau-analyze) =="
 if [ -n "$ANALYZE" ]; then
 	"$ANALYZE" src/shared/Types.luau src/shared/Config/*.luau src/shared/Data/*.luau \
-		src/shared/Progression/*.luau src/shared/Combat/*.luau src/shared/PlayerData/*.luau tests/*.luau \
+		src/shared/Progression/*.luau src/shared/Combat/*.luau src/shared/PlayerData/*.luau \
+		src/shared/Visual/KaijuGait.luau tests/*.luau \
 		&& echo "ok" || status=1
 else
 	echo "luau-analyze not found (skipped)"

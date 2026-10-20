@@ -9,7 +9,12 @@
 -- Built models: non-colliding, pivot at the feet facing -Z, PrimaryPart "Root" (invisible, anchored box).
 -- Every other part is welded to Root, so moving the model only needs Root's CFrame (cheap to replicate).
 -- Use KaijuModelFactory.place(model, cframe) to move it.
+--
+-- ANIMATION: designs mark limbs with ModelKit:group(...). Each group becomes an invisible "bone" part
+-- joined to Root by a Motor6D ("AnimMotor"); the group's parts are welded to that bone. The model is
+-- tagged "AnimatedKaiju" and the client-side KaijuAnimator drives the motors (walk cycles, wing beats).
 
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GameConfig = require("../Config/GameConfig")
@@ -31,6 +36,7 @@ local BASE_UNIT = 1.6 -- studs per placeholder unit at KL scale 1 (generic body 
 -- Hand-built designs are rescaled so their "presence" = max(height, 0.6 * max(width, length)) equals
 -- DESIGN_PRESENCE studs x KL modelScale x species.visual.scale.
 local DESIGN_PRESENCE = 11
+KaijuModelFactory.ANIMATED_TAG = "AnimatedKaiju"
 
 local function newPart(model: Model, name: string, size: Vector3, cf: CFrame, color: Color3): Part
 	local p = Instance.new("Part")
@@ -325,16 +331,43 @@ local function finalize(model: Model, species: Types.KaijuSpecies, opts: BuildOp
 	if opts and opts.nameplate then
 		addNameplate(model, root, species, opts.nameplateText)
 	end
+	-- Bones: one per animation group, driven by a Motor6D from Root.
+	local bones: { [string]: BasePart } = {}
 	for _, d in model:GetDescendants() do
-		if d:IsA("BasePart") and d ~= root then
+		local boneName = d:GetAttribute("AnimBone")
+		if d:IsA("BasePart") and type(boneName) == "string" then
+			bones[boneName] = d
 			d.Anchored = false
 			d.Massless = true
+			local motor = Instance.new("Motor6D")
+			motor.Name = "AnimMotor"
+			motor.Part0 = root
+			motor.Part1 = d
+			motor.C0 = root.CFrame:ToObjectSpace(d.CFrame)
+			motor.C1 = CFrame.identity
+			motor.Parent = d
+		end
+	end
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") and d ~= root and d:GetAttribute("AnimBone") == nil then
+			d.Anchored = false
+			d.Massless = true
+			local group = d:GetAttribute("AnimGroup")
 			local weld = Instance.new("WeldConstraint")
-			weld.Part0 = root
+			weld.Part0 = if type(group) == "string" and bones[group] then bones[group] else root
 			weld.Part1 = d
 			weld.Parent = d
 		end
 	end
+	if next(bones) then
+		-- distance covered per gait cycle, used by the animator to sync steps with movement
+		model:SetAttribute("AnimStride", math.max(bboxSize.X, bboxSize.Z) * 0.35)
+		CollectionService:AddTag(model, KaijuModelFactory.ANIMATED_TAG)
+	end
+	pcall(function()
+		-- stream the whole model at once so a client never sees a partial skeleton
+		(model :: any).ModelStreamingMode = Enum.ModelStreamingMode.Atomic
+	end)
 	model:SetAttribute("SpeciesId", species.id)
 end
 
@@ -380,7 +413,26 @@ function KaijuModelFactory.build(species: Types.KaijuSpecies, opts: BuildOptions
 		model = prepareOverride(template, species, extra)
 	elseif design then
 		model = Instance.new("Model")
-		design(ModelKit.new(model, #species.id))
+		local kit = ModelKit.new(model, #species.id)
+		design(kit)
+		for name, group in kit.groups do
+			local bone = Instance.new("Part")
+			bone.Name = "Bone_" .. name
+			bone.Size = Vector3.one * 0.2
+			bone.CFrame = CFrame.new(group.pivot)
+			bone.Transparency = 1
+			bone.Anchored = true
+			bone.CanCollide = false
+			bone.CanTouch = false
+			bone.CanQuery = false
+			bone.CastShadow = false
+			bone:SetAttribute("AnimBone", name)
+			bone:SetAttribute("AnimKind", group.kind)
+			bone:SetAttribute("AnimPhase", group.phase)
+			bone:SetAttribute("AnimSide", group.side)
+			bone:SetAttribute("AnimAmp", group.amp)
+			bone.Parent = model
+		end
 		model.WorldPivot = CFrame.new()
 		local _, size = model:GetBoundingBox()
 		local presence = math.max(size.Y, 0.6 * math.max(size.X, size.Z))
