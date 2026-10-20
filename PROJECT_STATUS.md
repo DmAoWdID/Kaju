@@ -1,6 +1,6 @@
 # Kaiju Park: Project Status
 
-_Last updated: 2026-10-20. First playable milestone (vertical slice) implemented, **not yet tested in Roblox Studio**._
+_Last updated: 2026-10-20. First playable milestone (vertical slice) implemented; **reported working in Roblox Studio by the developer**._
 
 ## Verification status
 
@@ -10,7 +10,7 @@ _Last updated: 2026-10-20. First playable milestone (vertical slice) implemented
 | `luau-analyze` strict type check of pure modules + tests | ✅ 0 errors |
 | Unit tests (`luau tests/run.luau`): data, validator, combat, progression, save schema | ✅ 34/34 |
 | `rojo build default.project.json` → `build/KaijuPark.rbxl` | ✅ builds; instance tree verified via `rojo sourcemap` |
-| Roblox Studio play test | ❌ **not done yet**. Everything touching Roblox APIs (world, prompts, UI, DataStore) is unverified at runtime. |
+| Roblox Studio play test | ✅ reported working by the developer (2026-10-20, manual). Live DataStore saving, mobile and multi-client not separately confirmed. |
 | `rojo serve` | ✅ starts and serves project `KaijuPark` on localhost:34872 (checked via its HTTP API) |
 | Studio plugin connecting to `rojo serve` | ❌ not verified (the Rojo plugin is installed in Studio) |
 
@@ -70,7 +70,7 @@ Please report any Output errors. That is the fastest way to fix runtime issues I
 
 ## Known issues / limitations
 
-- Not yet run in Studio (see above). Expect some runtime fixes on first play.
+- DataStore persistence only runs on live servers (or Studio with API access + `useDataStoreInStudio`); not yet tested there.
 - Placeholder art only; per-species colors come from the PDF pages. Real models can be dropped into `ReplicatedStorage.KaijuModels` (see `Docs/TECHNICAL_ARCHITECTURE.md`).
 - Fusion (level 10→11 and up to 40) is not implemented; level-up stops at 10.
 - Traits have no combat effect. Team size is 1.
@@ -82,7 +82,7 @@ Please report any Output errors. That is the fastest way to fix runtime issues I
 
 ## Next best tasks
 
-1. **Run the Studio checklist above** and fix any runtime errors (highest priority).
+1. Confirm the remaining checklist items (mobile emulator, 2-player test, published-place DataStore save/load).
 2. Resolve the open design questions in `Docs/IMPLEMENTATION_DECISIONS.md` (starter kaiju, combat formulas, chain/price tables).
 3. Fusion system (level 10 → 11 with two identical level-10 kaijus).
 4. Free enclosure placement / move / sell, and a proper park layout.
