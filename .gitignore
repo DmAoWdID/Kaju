@@ -2,5 +2,7 @@
 *.rbxlx
 *.rbxl.lock
 *.rbxlx.lock
-build/
+build/*
+# the Rojo-built place is committed so it can be opened without the toolchain
+!build/KaijuPark.rbxl
 sourcemap.json
